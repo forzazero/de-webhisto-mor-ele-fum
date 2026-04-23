@@ -90,14 +90,14 @@ h_{t+1} = L(h_t) + F(h_t, e; \theta).
 \[
 \tilde{h}_t = A^t h_0 + \sum_{j=0}^{t-1} A^{t-1-j} B e
 \]
-for the **LTI-only** iterates (write **\(\tilde{h}\)** to distinguish them from the true **\(h_t\)** in the full map **\(L+F\).**) When \(\rho(A) < 1\), powers **\(A^t\)** decay, and the contribution of **\(A^t h_0\)** to large **\(t\)** is small; the part driven by the fixed **\(e\)** is a (matrix-valued) **geometric series** in **\(A\).** Reinstating \(F\) makes the true dynamics **nonlinear** and this formula only a design guide, but a **constrained** \(A\) (so that the linear part is, e.g., **contractive** in \(\|\cdot\|_2\)) is what keeps the map from **resembling an unconstrained** deep residual. A sufficient (strong) condition in analyses is **\(\|A\|_2 < 1\),** which **implies** **\(\rho(A) < 1\).**
+for the **LTI-only** iterates (write **\(\tilde{h}\)** to distinguish them from the true **\(h_t\)** in the full map **\(L+F\).**) When \(\rho(A) < 1\), powers **\(A^t\)** decay, and the contribution of **\(A^t h_0\)** to large **\(t\)** is small; the part driven by the fixed **\(e\)** is a (matrix-valued) **geometric series** in **\(A\).** Reinstating \(F\) makes the true dynamics **nonlinear** and this formula only a design guide, but a **constrained** \(A\) (so that the linear part is, e.g., **contractive** in \(\lVert\cdot\rVert_2\)) is what keeps the map from **resembling an unconstrained** deep residual. A sufficient (strong) condition in analyses is **\(\lVert A\rVert_2 < 1\),** which **implies** **\(\rho(A) < 1\).**
 
 **RDT vs. a unique-layer stack.** A “classical” deep net is **\(G_D \circ G_{D-1} \circ \cdots \circ G_1\)** with **independent** blocks **\(G_d\)**. The RDT uses **repeated** applications of a **single** **\(F(\cdot, e; \theta)\)**. For the **recurrent** block, parameters scale **roughly** as
 \[
-\big| P_{\text{rec}} \big| \;\approx\; |P_F| + |A| + |B| + \cdots, \qquad
-\text{not} \;\; N \cdot |P_F|,
+\lvert P_{\text{rec}} \rvert \;\approx\; \lvert P_F\rvert + \lvert A\rvert + \lvert B\rvert + \cdots, \qquad
+\text{not} \;\; N \cdot \lvert P_F\rvert,
 \]
-where **\(N\)** is the unroll cap, **\(|A|\)** and **\(|B|\)** are the LTI **parameter** counts, and **\(|P_F|\)** is the size of the **shared** **\(F\).** Prelude, Coda, and embedding add **separate** parameter **counts.** Unrolling **\(N\)** times does **not** multiply **\(|P_F|\)** by **\(N\)**, unlike **\(N\)** *independent* full layers.
+where **\(N\)** is the unroll cap, **\(\lvert A\rvert\)** and **\(\lvert B\rvert\)** are the LTI **parameter** counts, and **\(\lvert P_F\rvert\)** is the size of the **shared** **\(F\).** Prelude, Coda, and embedding add **separate** parameter **counts.** Unrolling **\(N\)** times does **not** multiply **\(\lvert P_F\rvert\)** by **\(N\)**, unlike **\(N\)** *independent* full layers.
 
 **Intuition**
 
@@ -139,7 +139,7 @@ often with **\(B_k, A_k\)** **shared** or **tied** across **\(k\).** Schematical
 \[
 \mathcal{L}_{\mathrm{CE}} = - \frac{1}{T'} \sum_{\tau} \log p_\tau\big( y^{*}_{\tau+1} \;\big)
 \]
-over **targets** **\(y^{*}\).** RDTs do **not** change the form of **\(\mathcal{L}_{\mathrm{CE}};\)** they change the **\(h\)**-trajectory and the per-forward **FLOP** count through the recurrent map **\(\Phi\)** and its dependence on the unroll cap **\(N\)** and (with ACT) the halting time **\(T\).**
+over **targets** **\(y^{*}\).** RDTs do **not** change the form of **\(\mathcal{L}_{\mathrm{CE}}\)**; they change the **\(h\)**-trajectory and the per-forward **FLOP** count through the recurrent map **\(\Phi\)** and its dependence on the unroll cap **\(N\)** and (with ACT) the halting time **\(T\).**
 
 ### 1.4 What lives inside the recurrent block only
 
