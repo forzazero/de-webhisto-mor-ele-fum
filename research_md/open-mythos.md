@@ -87,7 +87,8 @@ for the **LTI-only** iterates (write **\(\tilde{h}\)** to distinguish them from 
 \big| P_{\text{rec}} \big| \;\approx\; |P_F| + |A| + |B| + \cdots, \qquad
 \text{not} \;\; N \cdot |P_F|,
 \]
-where **\(N\)** is the unroll cap, **\(|A|\)** and **\(|B|\)** are the LTI **parameter** counts, and **\(|P_F|\)** is the size of the **shared** **\(F\).** Prelude, Coda, and embedding add **separate** parameter **counts.** Unrolling **\(N\)** times does **not** multiply **\(|P_F|\)** by **\(N\)**, unlike **\(N\)** *independent* full layers.\n
+where **\(N\)** is the unroll cap, **\(|A|\)** and **\(|B|\)** are the LTI **parameter** counts, and **\(|P_F|\)** is the size of the **shared** **\(F\).** Prelude, Coda, and embedding add **separate** parameter **counts.** Unrolling **\(N\)** times does **not** multiply **\(|P_F|\)** by **\(N\)**, unlike **\(N\)** *independent* full layers.
+
 **Intuition**
 
 - **\(F(h_t, e)\)** is the “deliberation” step: self-attention over the current sequence state plus routed experts.
@@ -98,7 +99,7 @@ The *fundamental* object is not a list of 96 **distinct** block maps; it is **on
 
 ### 1.3 Formalism for MoE, ACT, and depth-wise low-rank updates
 
-**Sparse mixture-of-experts FFN.** Inside the shared block **\(F\),** the (sub-)FFN is a **mixture** over **\(E\)** expert maps **\(E_i: \mathbb{R}^{d} \to \mathbb{R}^{d}\)**. A **router** maps **\(h\)** to a vector in **\(\mathbb{R}^{E}\)**; after **\(\! \)softmax\(\! \) **\(\! \)(or\(\! \) **\(\! \)a\(\! \) **\(\! \)stabilized\(\! \) **\(\! \)variant) **\(\! \) one\(\! \) **\(\! \) has\(\! \) **\(\! g_i\!\! \) **\(\! \) **\(\! \ge\!\! \) 0, **\(\! \sum_i g_i = 1.****) **\(\! \) A\(\! \) **\(\! \) **\(\! \) A **\(\! \) common\(\! \) **\(\! \) top-\(\! \)K\(\! \) **\(\! \) gating: **\(\! \) **\(\! \)let\(\! \) **\(\! \) **\(\! \) **\(\! \) **\(\! \) **.**** " 
+**Sparse mixture-of-experts FFN.** Inside the shared block **\(F\),** the (sub-)FFN is a **mixture** over **\(E\)** expert maps **\(E_i: \mathbb{R}^{d} \to \mathbb{R}^{d}\)**. A **router** maps **\(h\)** to a vector in **\(\mathbb{R}^{E}\)**; after **softmax** (or a stabilized variant) one has **\(g_i \ge 0\),** **\(\sum_i g_i = 1\).** A common **top-\(K\)** gating: let 
 \[
 \mathrm{FFN}_{\mathrm{MoE}}(h) = \sum_{i \in \mathcal{I}} \tilde{g}_i \, E_i(h) \;+\; \text{(optional shared MLP and residual)}.
 \]
@@ -124,7 +125,7 @@ r \ll d,
 \]
 often with **\(B_k, A_k\)** **shared** or **tied** across **\(k\).** Schematically **\(h \mapsto W h + B_k A_k h\),** one has **\(\mathrm{rank}(B_k A_k) \le r\),** and parameter count is **\(O(d r)\)** per such slot, not **\(O(d^2)\).**
 
-**Logits and training (standard language modeling).** Let **\(H \in \mathbb{R}^{d \times T}\)** be the Coda final hidden, let **\(\ell_{\tau} = W_V \, \mathrm{RMSNorm}(h_{\tau}) \in \mathbb{R}^{V}\)**, and **\(p_\tau = \text{softmax}(\ell_\tau)\).** A next-token **cross-entropy** over **\(T'\)** positions (with the usual **mask/weights**) is
+**Logits and training (standard language modeling).** Let **\(H \in \mathbb{R}^{d \times T}\)** be the Coda final hidden, let **\(\ell_{\tau} = W_V \, \operatorname{RMSNorm}(h_{\tau}) \in \mathbb{R}^{V}\)**, and **\(p_\tau = \text{softmax}(\ell_\tau)\).** A next-token **cross-entropy** over **\(T'\)** positions (with the usual **mask/weights**) is
 \[
 \mathcal{L}_{\mathrm{CE}} = - \frac{1}{T'} \sum_{\tau} \log p_\tau\big( y^{*}_{\tau+1} \;\big)
 \]
@@ -268,7 +269,7 @@ OpenMythos, read honestly, is a **speculative** but **structured** bet: that **r
 
 **Next steps for readers who run experiments:** clone, pick a small realistic budget, measure **per-depth** and **per-token-ACT** curves, compare against a **Parcae-style** reference when applicable, and publish **configs and logs** so results compound.
 
-**One-line echo of the technical core (Sections 1–2 in this file):** The **fundamental** graph remains **Prelude → (LTI + shared transformer + MoE + loop conditioning + ACT)\(^N\) → Coda**; the **design intent** is **shared** weights for **depth**, **stabilized** recurrence for long loops, **MoE** and **MLA/GQA** for **capacity and context**, and **ACT** plus **iteration** conditioning so **compute tracks the problem**, not a fixed **layer** count.
+**One-line echo of the technical core (Sections 1–2 in this file):** The **fundamental** graph remains **\(\mathrm{Prelude} \to (\text{LTI} + \text{shared transformer} + \text{MoE} + \text{loop conditioning} + \text{ACT})^{N} \to \mathrm{Coda}\)**; the **design intent** is **shared** weights for **depth**, **stabilized** recurrence for long loops, **MoE** and **MLA/GQA** for **capacity and context**, and **ACT** plus **iteration** conditioning so **compute tracks the problem**, not a fixed **layer** count.
 
 ### Repository and install (unchanged for operators)
 
