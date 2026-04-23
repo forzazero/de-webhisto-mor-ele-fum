@@ -56,11 +56,21 @@ flowchart LR
 
 The high-level map is: **bottleneck the recurrent core**, **stabilize the state update**, **attach breadth (MoE) and adaptive exit (ACT) to that core**.
 
-**Composition of maps.** If \(f_{\text{pre}}\) (Embedding + Prelude), \(\Phi(\cdot; \theta)\) is the **recurrent** update that advances hidden state in one **loop** step (the same map applied each time, including LTI, block \(F\), and MoE/conditioning in code), and \(f_{\text{coda}}\) is the Coda stack, a forward pass (before the LM head) is schematically
+**Composition of maps.** Let \(f_{\text{pre}}\) be embedding plus **Prelude**, producing an initial state \(h_0\) and a fixed **injection** \(e\). Let \(\Phi(\cdot; e, \theta)\) be *one* **recurrent** step (LTI plus the shared **\(F\)** block: attention, MoE, and conditioning in code) with the same \((e,\theta)\) on every step. Let \(f_{\text{coda}}\) be the **Coda** stack (before the LM head). For token (or position) data \(x\), an end-to-end pass is
 \[
-h_{\text{out}} \;=\; f_{\text{coda}}\,\big( \,\Phi^N( f_{\text{pre}}(x) ) \,\big) ,
+\begin{aligned}
+(h_0, e) &= f_{\text{pre}}(x), \\
+h_{k+1} &= \Phi(h_k; e, \theta), \qquad k = 0, \dots, N-1, \\
+h_{\text{out}} &= f_{\text{coda}}(h_N).
+\end{aligned}
 \]
-where \(x\) is token (or position) data. In code, **\(f_{\text{pre}}(x)\)** prepares the initial state **\(h_0\)** and the injection **\(e\).** Let **\(\Phi\)** denote *one* recurrent *step* (the LTI part plus the shared **\(F\)** block) with **\(e\)** *fixed* across loop *iterations.* Then **\(\Phi^N\)** is *\(N\)* applications of the *same* map, e.g. **\(h_{k+1}=\Phi(h_k)\)** for **\(k=0,\dots,N-1\)** *given* **\(h_0\)** *from* the *Prelude.* That is the sense in which the model is a *repeated* unroll, not a list of distinct **\(F_t\).**
+Compactly (same object, with \(e\) and \(\theta\) fixed in each application of \(\Phi\)):
+\[
+h_{\text{out}} = f_{\text{coda}}\bigl(h_N\bigr),
+\qquad h_N = \Phi^{N}(h_0),
+\qquad (h_0, e) = f_{\text{pre}}(x),
+\]
+where \(\Phi^{N}\) is \(N\)-fold **composition** of \(h \mapsto \Phi(h; e, \theta)\) starting at \(h_0\), not \(N\) distinct layers \(F_t\). The parameters \(\theta\) are **shared** across steps; the loop is a **repeated** unroll of the same \(\Phi\).
 
 ### 1.2 The recurrent update (what one “layer” of depth actually is)
 
