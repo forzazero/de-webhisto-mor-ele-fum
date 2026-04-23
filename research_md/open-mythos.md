@@ -57,19 +57,23 @@ flowchart LR
 The high-level map is: **bottleneck the recurrent core**, **stabilize the state update**, **attach breadth (MoE) and adaptive exit (ACT) to that core**.
 
 **Composition of maps.** Let \(f_{\text{pre}}\) be embedding plus **Prelude**, producing an initial state \(h_0\) and a fixed **injection** \(e\). Let \(\Phi(\cdot; e, \theta)\) be *one* **recurrent** step (LTI plus the shared **\(F\)** block: attention, MoE, and conditioning in code) with the same \((e,\theta)\) on every step. Let \(f_{\text{coda}}\) be the **Coda** stack (before the LM head). For token (or position) data \(x\), an end-to-end pass is
-\[
+
+```latex
 \begin{aligned}
 (h_0, e) &= f_{\text{pre}}(x), \\
 h_{k+1} &= \Phi(h_k; e, \theta), \qquad k = 0, \dots, N-1, \\
 h_{\text{out}} &= f_{\text{coda}}(h_N).
 \end{aligned}
-\]
+```
+
 Compactly (same object, with \(e\) and \(\theta\) fixed in each application of \(\Phi\)):
-\[
+
+```latex
 h_{\text{out}} = f_{\text{coda}}\bigl(h_N\bigr),
 \qquad h_N = \Phi^{N}(h_0),
 \qquad (h_0, e) = f_{\text{pre}}(x),
-\]
+```
+
 where \(\Phi^{N}\) is \(N\)-fold **composition** of \(h \mapsto \Phi(h; e, \theta)\) starting at \(h_0\), not \(N\) distinct layers \(F_t\). The parameters \(\theta\) are **shared** across steps; the loop is a **repeated** unroll of the same \(\Phi\).
 
 ### 1.2 The recurrent update (what one “layer” of depth actually is)
