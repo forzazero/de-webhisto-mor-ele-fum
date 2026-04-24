@@ -310,12 +310,12 @@ where \(f_{\text{unproxy}}\) is the CCR/ingress **unwrap** from the **reference*
 **Why it matters for agent architecture.** In naive systems, “duplicate” tools with different names **multiply** the action space, confuse the model, and break cache keys. **Content-based** identity is a **formal** answer to a **formal** problem. It is **more advanced** than name-based merging because it aligns **runtime** behavior with **intended** deployment identity.
 
 ```mermaid
-flowchart LR
-  S1[Scope A: "slack" URL]
-  S2[Scope B: "Slack-Prod" URL unwrapped]
-  S1 & S2 --> SIG[Same kappa?]
-  SIG -->|yes| ONE[One logical server, precedence rule]
-  SIG -->|no| TWO[Two servers in map]
+flowchart TD
+    S1["Scope A slack URL"]
+    S2["Scope B Slack-Prod URL unwrapped"]
+    S1 & S2 --> SIG["Same kappa?"]
+    SIG -->|"yes"| ONE["One logical server, precedence rule"]
+    SIG -->|"no"| TWO["Two servers in map"]
 ```
 
 ---
