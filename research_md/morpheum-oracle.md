@@ -1,60 +1,71 @@
 ## Overview
 
-The documents describe the Morpheum Oracle Engine, a core component of the Morpheum DEX—a decentralized exchange built on a Directed Acyclic Graph (DAG) architecture that is gasless, blockless, and non-smart contract-based. It focuses on high-performance price oracles, risk management, and auto-deleveraging for perpetuals, options, and spot markets.
+This note sketches the **Morpheum Oracle Engine**—the pricing and risk layer behind the Morpheum DEX. The exchange is built around a **Directed Acyclic Graph (DAG)** design described as gasless, blockless, and not routed through classic smart-contract call paths for its core matching. In plain terms, the oracle stack is meant to supply **fast, aggregated prices**, **risk controls**, and **auto-deleveraging** for perpetuals, options, and spot.
 
-## System Architecture and Data Flow
+The core idea, in one sentence: treat oracle ingestion, normalization, and publication as a **pipeline** with clear boundaries so latency budgets and failure modes stay inspectable.
 
-The system follows a layered pipeline:
+---
 
-- **Input Layer**: Ingests data from CEXs like Binance/OKX, oracles like Chainlink/Pyth, market daemons, and internal services
-- **Process Layer**: Handles TWAP, funding rates, HMIB mark prices, spreads, ADL with LP favoritism, and multi-source aggregation
-- **Output Layer**: Delivers via REST/gRPC APIs, WebSockets, Prometheus metrics, and PostgreSQL storage
+## Why it matters
 
-Market IDs flow end-to-end with low latency (<50ms API responses, <1ms calculations), supported by unified market data services (87.5% memory reduction, 60-70% performance boost via single data structures and adapters).
+If a perpetuals venue mis-marks or stalls during stress, the failure mode is rarely “wrong UI”—it is liquidations, basis blowouts, and brittle automation downstream. A layered oracle design matters because it lets operators reason about **which source failed**, **what fallback applied**, and **how stale** each feed was when a decision was made.
 
-## Key Enhancements (v1.2.911)
+---
 
-- Unified market data refactoring
-- Heartbeat fixes for daemons (ensuring 7/7 healthy)
-- Multi-source reliability (CEX → Pyth → Chainlink failover)
-- Options data sourcing from Deribit/OKX/Binance with aggregation, Greeks, and Mark IV volatility calculations
+## System architecture and data flow
 
-## Sharding and DAG Integration
+The described pipeline has three layers:
 
-Sharding partitions the CLOB (order matching) and risk engine (PNL, liquidations, bucket IDs) across shards in the DAG network. Data distribution uses a greedy algorithm based on node sizes (capacity-normalized allocation to balance load), with sub-DAGs per shard for concurrent processing. Blobs handle temporary data (e.g., rollup-like batches) with expiry.
+- **Input**: Centralized venues (e.g. Binance, OKX), external oracles (Chainlink, Pyth), internal daemons, and other services.
+- **Process**: TWAP-style smoothing, funding and mark conventions (including HMIB-style marks), spreads, **ADL** with LP-favoring rules, and aggregation across sources.
+- **Output**: REST and gRPC, WebSockets, Prometheus, and PostgreSQL for history and audit surfaces.
 
-This enables ~5,000-10,000 TPS, 200-500ms latency, and fault tolerance (<1s recovery via 3-5x replication).
+The documentation quotes aggressive latency targets (for example **<50 ms** API responses and **<1 ms** for “hot path” calculations) and claims substantial efficiency wins from unifying market-data structures (on the order of **~87.5%** memory reduction and **~60–70%** performance improvement versus a prior fragmented layout). Those numbers should be read as **reported engineering outcomes for a specific refactor**, not as universal laws—reproduce them on your workload if they matter for capacity planning.
 
-## Innovative Features
+---
 
-### 1. Multi-Source Oracle Aggregation with Automatic Failover
+## Version note (v1.2.911)
 
-Unified input layer aggregates data from CEXs (Binance, OKX, etc.), Pyth (high-frequency feeds), and Chainlink (decentralized on-chain), with weighted averages, outlier detection, staleness filtering, and priority failover (CEX → Pyth → Chainlink).
+Reported changes include: unified market-data internals, heartbeat fixes aimed at **7/7** healthy daemons, multi-source failover ordering (**CEX → Pyth → Chainlink**), and richer options inputs (Deribit / OKX / Binance) with aggregation, Greeks, and Mark IV.
 
-**Innovation**: 87.5% memory reduction via single data structures/adapters; 90%+ cache hit rate with predictive TTL; supports HMIB mark prices, EMA-smoothed funding rates, and Mark IV volatility for options.
+---
 
-### 2. Sharding Optimized for Heterogeneous Nodes
+## Sharding and DAG integration
 
-Shards CLOB/risk engine by user ID hash, distributing data (positions, blobs) greedily based on node sizes (capacity-normalized: larger nodes get bigger shards), with 3-5x replication and <1s failure recovery.
+**Sharding** splits the **CLOB** (matching) and **risk engine** (PNL, liquidations, bucket IDs) across shards on the DAG. Placement is described as a **greedy**, capacity-aware allocation so larger nodes absorb proportionally more load; **sub-DAGs** per shard support concurrent work, and **blobs** hold short-lived batch-like data with expiry.
 
-Handles 10-20M positions with proportional load (e.g., ~100k/shard), using blobs for temporary data (expiry ~1 hour) and sub-DAGs for intra-shard concurrency; minimizes imbalance (max(l_i / s_i) ≤ 2 × OPT).
+Published throughput and latency figures (**~5k–10k TPS**, **200–500 ms** end-to-end style latency, **<1 s** recovery with **3–5×** replication) are **design targets and reported ranges**. In the least convenient world—partitioning, poisoned feeds, or hotspot keys—those headlines need tracing back to measured percentiles and failure injections.
 
-### 3. Advanced Risk Management
+---
 
-ADL (auto-deleveraging) prioritizes liquidity providers (LP favoritism) in position ranking/execution; uses bucket IDs for risk categorization (PNL/liquidations); integrates with sharded risk engine for parallel processing.
+## Feature areas (with trade-offs)
 
-Event-driven, with insurance fund integration and deficit coverage; supports cross-margin funding and inverse/quanto perps.
+### Multi-source aggregation and failover
 
-### 4. Production-Ready Observability
+Inputs are merged with weights, outlier and staleness filters, and an ordered fallback path. The upside is **robustness to single-feed gaps**; the downside is **complexity**: failover policies can hide slowly drifting bias unless monitoring covers **per-source divergence** and **cache age**.
 
-Comprehensive Prometheus metrics (e.g., cache hits, failover rates), heartbeat health checks (7/7 daemons), graceful degradation, and hot-reload configs without restarts. 99.9% uptime with circuit breakers and historical backfill; unified metrics for all layers.
+### Sharding for heterogeneous hardware
 
-## Efficiency and Scalability
+User-ID hashing spreads positions and blob state; replication and greedy shard sizing aim to cap imbalance (documentation cites bounds like **max(lᵢ/sᵢ) ≤ 2 × OPT** under their model). This is plausible for steady load, but **skewed whales** or **correlated bursts** can still stress individual shards—something only production traces settle.
 
-For 10-20M positions, the design scales horizontally (100-200 shards, 50-100 nodes), with high TPS/low latency, proportional storage (~10-20 GB total), and security (Merkle proofs, fraud proofs). It's compared favorably to centralized exchanges (Binance: ~8M positions, >100k TPS; OKX/Bybit: similar), but adds decentralization.
+### Risk: ADL and buckets
 
-Production-ready with monitoring, hot-reload configs, and Prometheus metrics. Emphasizes reliability (99.9% uptime, self-healing), accuracy (outlier detection, confidence weighting), and scalability (horizontal, event-triggered DAG updates).
+**Auto-deleveraging** with LP-favoring ranking, bucket IDs for risk bands, and a sharded risk engine is a standard pattern for **parallel liquidation math**; the social and game-theoretic properties of ADL (who gets closed and when) remain contentious across venues—implementation correctness does not resolve incentive debates.
 
-## Conclusion
+### Observability
 
-The system is production-ready (v1.2.911), focused on DEX oracle/risk needs, with an emphasis on multi-source data fusion, sharding for heterogeneity, and DAG for concurrency—making it suitable for high-frequency trading while addressing blockchain scalability challenges.
+Prometheus metrics, heartbeats, hot-reload configuration, and graceful degradation are framed toward **99.9%** uptime. Uptime claims are best validated against **your** SLO definitions (what counts as “down,” and for whom).
+
+---
+
+## Efficiency and scalability (stated vs. inferred)
+
+For **10–20 M** positions, the design points toward **~100–200** shards and **~50–100** nodes, with horizontal scaling and Merkle- or fraud-proof style integrity mechanisms in the broader system story. Comparisons to centralized venues (Binance-scale position counts, six-figure TPS) are **illustrative context**; decentralization buys different failure modes, not a strict dominance ordering on every metric.
+
+---
+
+## Synthesis
+
+On balance, the Morpheum oracle narrative is **coherent as an engineering brief**: fuse many feeds, normalize aggressively, shard heavy state, and expose observability so operators can see degradation before users do. The open questions—how failover interacts with **latency SLOs**, how **options IV** quality tracks under thin markets, and how **ACT-like** or **agent-driven** traffic spikes interact with shard placement—are where I would spend validation effort next.
+
+The system is described as **production-oriented** (specific version cited above); whether it matches *your* production bar still depends on audits, incident history, and reproducible benchmarks rather than the headline numbers alone.

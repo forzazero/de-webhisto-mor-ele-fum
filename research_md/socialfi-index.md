@@ -8,7 +8,9 @@
 
 ### Abstract
 
-High-volume news feeds and generic sentiment measures rarely identify *which* unresolved, forward-looking propositions are simultaneously socially salient, materially consequential, and amenable to probabilistic aggregation. This note specifies the **Category Care Index** (CCI): a family of real-valued indices—one per topical category—that combine (i) live prediction-market probabilities, (ii) model- or agent-derived priors on salience, (iii) exogenous attention proxies, and (iv) time-to-resolution decay, within a single importance-weighted mean. The construction parallels capitalization-weighted sector indices in asset pricing, except that weights reflect composite importance rather than notional value alone. The document states definitions, normalizations, and layer-wise data dependencies, and it outlines an operational recalculation schedule and optional derived quantities (e.g. sector “heat” and a probability-based uncertainty measure).
+News feeds are voluminous, and generic sentiment scores are easy to compute—but neither, in my view, reliably answers a narrower question: *which* unresolved, forward-looking claims are at once socially salient, materially consequential, and suitable for probabilistic aggregation? This note specifies one possible answer in the form of the **Category Care Index** (CCI): a family of real-valued indices—one per topical category—that combine (i) live prediction-market probabilities, (ii) model- or agent-derived priors on salience, (iii) exogenous attention proxies, and (iv) time-to-resolution decay, inside a single importance-weighted mean.
+
+The construction is somewhat like a **capitalization-weighted sector index** in asset pricing, except that weights aim to reflect composite *importance* rather than notional market value alone. I state definitions, normalizations, and layer-wise data dependencies, sketch an operational recalculation schedule, and mention optional derived quantities (e.g. sector “heat” and a probability-based uncertainty measure). The value of any single index number should not be overstated: it is a transparent bookkeeping device for a chosen weighting rule, not a discovery about “what society truly cares about.”
 
 **Keywords:** prediction markets, importance weighting, attention economics, composite indices, normalization, time decay
 
@@ -16,11 +18,17 @@ High-volume news feeds and generic sentiment measures rarely identify *which* un
 
 ### 1. Introduction and problem setting
 
-Contemporary information systems exhibit three recurrent limitations. First, **scale**: item counts are large, yet rank orderings rarely encode joint consideration of endogenous agent assessments, exogenous attention, and objective impact. Second, **temporal statics**: “trending” lists often neglect resolution horizons and the differential urgency of short- versus long-dated events. Third, **orientation**: univariate sentiment is predominantly retrospective, whereas decision-relevant public information is frequently best represented as a distribution over future states—precisely the object that prediction-style markets and comparable elicitation mechanisms provide.
+If you spend time with modern information systems, three limitations keep showing up—and they interact in awkward ways.
 
-The CCI is designed to sit at this interface. For each category \(C\) (e.g. politics, science and technology, sports) and time \(t\), the index aggregates *active*, **unresolved** propositions whose outcomes are associated with a scalar probability \(p_i(t) \in [0,1]\), weighting them by a nonnegative composite **importance** score \(s_i(t)\) and an exponentiated concentration parameter \(\alpha > 1\), then rescaling the result to an interpretable scale (e.g. \(0\)–\(100\)).
+First, **scale**. The raw item count is enormous, yet many ranking schemes still compress everything into one dimension. That makes it hard to jointly respect what agents believe, what the broader public is staring at, and how much real-world downside hangs on the outcome.
 
-**Contributions of this note (methodological, not empirical).** (1) A closed-form definition of \(I_C(t)\) as an importance-weighted mean of market probabilities. (2) A four-component decomposition of \(s_i(t)\) with explicit category-relative min–max normalization. (3) A layered description of the data flow that separates *identity and eligibility* from *price* from *exogenous drivers*, clarifying which quantities enter the weight path versus the index formula alone.
+Second, **temporal statics**. “Trending” surfaces often behave as if urgency were optional. Two topics can look similarly “hot” while one resolves next week and the other next year; the difference matters for planning and for how seriously to treat short-run probability moves.
+
+Third, **orientation**. Much sentiment tooling looks backward (how people *felt* about yesterday’s headline). A fair slice of decision-relevant public information is better thought of as a **distribution over future states**—which is roughly what prediction-style markets and comparable elicitation mechanisms try to encode.
+
+The **CCI** is meant to sit in that gap. For each category \(C\) (politics, science and technology, sports, and so on) and time \(t\), it aggregates *active*, **unresolved** propositions that carry a scalar probability \(p_i(t) \in [0,1]\), weights them by a nonnegative composite **importance** score \(s_i(t)\) with an exponentiated concentration parameter \(\alpha > 1\), then rescales to something humans can scan quickly (for example \(0\)–\(100\)).
+
+**What this note contributes—methodologically, not empirically.** (1) A closed-form definition of \(I_C(t)\) as an importance-weighted mean of market probabilities. (2) A four-component decomposition of \(s_i(t)\) with explicit category-relative min–max normalization. (3) A layered picture of the data flow that separates *identity and eligibility* from *price* from *exogenous drivers*, so it is clearer which objects feed the weight path and which feed only the index formula.
 
 ---
 
@@ -34,7 +42,7 @@ Let \(\mathcal{A}_C(t)\) denote the set of **active** (unresolved) topics in cat
 I_C(t) = \frac{\sum_{i \in \mathcal{A}_C(t)} w_i(t) \, p_i(t)}{\sum_{i \in \mathcal{A}_C(t)} w_i(t)}
 \]
 
-subject to nonnegative weights \(w_i(t)\) defined below. Display values may apply an affine map from the unit interval to \([0,100]\) without loss of the relative ordering within \(C\).
+subject to nonnegative weights \(w_i(t)\) defined below. Display values may apply an affine map from the unit interval to \([0,100]\) without changing relative ordering within \(C\).
 
 **Definition 2 (concentration weights).** Let \(s_i(t) \geq 0\) be a composite importance score. Topic weights follow a “market-cap” normalization with exponent \(\alpha > 1\):
 
@@ -42,9 +50,9 @@ subject to nonnegative weights \(w_i(t)\) defined below. Display values may appl
 w_i(t) = \frac{[s_i(t)]^\alpha}{\sum_{j \in \mathcal{A}_C(t)} [s_j(t)]^\alpha}
 \]
 
-Values \(\alpha \in [1.6, 2.0]\) increase the influence of the largest scores relative to a linear sum; the exact choice is a design parameter, not identified here from data.
+Values \(\alpha \in [1.6, 2.0]\) push influence toward the largest scores compared with a linear sum; the exact choice is a design knob, not something I try to “identify” from data here.
 
-**Remark.** Probabilities \(p_i(t)\) do **not** enter \(s_i(t)\) in the specification below. They enter only through Definition 1. This separation makes the weighting interpretable as exogenous to the contemporaneous level of \(p_i\), and it avoids double-counting when the same information flow updates both “attention to \(i\)” and market prices.
+**Remark (a deliberate separation).** Probabilities \(p_i(t)\) do **not** enter \(s_i(t)\) in the specification below. They enter only through Definition 1. On balance, I think this split is helpful: weights stay interpretable as not mechanically doubling the same contemporaneous shock that already moves \(p_i\). The trade-off is real—if you *wanted* “surprise” or conviction to influence weights, you would need a different layer—and I flag that as an extension rather than hiding it.
 
 ---
 
@@ -65,6 +73,8 @@ For each active topic \(i\):
   U_{\text{raw},i}(t) = \exp\!\left(-\frac{d_i(t)}{\tau_C}\right),
   \]
   where \(d_i(t)\) is the remaining time in days to resolution at \(T_i\), and \(\tau_C > 0\) is category-specific (e.g. shorter in sports, longer in science or institutional politics).
+
+Each component is plausible in isolation; the awkward part—and the interesting part—is how strongly they should trade off when they disagree.
 
 #### 3.2 Category-relative min–max normalization
 
@@ -89,7 +99,7 @@ s_i(t) = w_A\, \hat{A}_i(t) + w_B\, \hat{B}_i(t) + w_K\, \hat{K}_i(t) + w_U\, \h
 w_A + w_B + w_K + w_U = 1, \quad w_k \geq 0.
 \]
 
-A **default** allocation (tunable by \(C\)) is \(w_A=0.35\), \(w_B=0.40\), \(w_K=0.15\), \(w_U=0.10\), reflecting a hypothesis that exogenous attention carries the largest marginal informativeness for *cross-sectional* salience, conditional on the other terms.
+A **default** allocation (tunable by \(C\)) is \(w_A=0.35\), \(w_B=0.40\), \(w_K=0.15\), \(w_U=0.10\). That embeds a hypothesis—not a theorem—that exogenous attention carries the largest marginal informativeness for *cross-sectional* salience, conditional on the other terms. Plausibly wrong for some domains; easy to revisit.
 
 #### 3.4 Layered data architecture
 
@@ -200,22 +210,26 @@ Propositions that resolve before \(t + \Delta t\) are excluded on the next run b
 
 ### 6. Applications, stakeholders, and interpretation
 
-The CCI is intended for **descriptive** monitoring of *which* unresolved, priced propositions in a category jointly concentrate probability mass under an explicit attention–importance map—not for *causal* claims about the sources of that mass. Plausible use contexts include: macro or sector-level dashboards for market participants; editorial prioritization subject to human override; and policy or civil-society monitoring of expectations over institutional outcomes, with appropriate epistemic caveats. Prediction-market platforms may use such an aggregate as a transparent, category-level layer above individual contracts.
+Let’s recap the ambition in plain language. The CCI is meant as a **descriptive** monitor of *which* unresolved, priced propositions in a category jointly concentrate probability mass under an explicit attention–importance map—not as a license for **causal** storytelling about why that mass moved.
 
-**Interpretive caveat.** The index is a function of the construction of \(s_i\), the choice of \(\alpha\), and the integrity of \(p_i\) and \(\mathcal{A}_C\); it should be read as one model in a class of defensible weighting rules, not as a uniquely “true” measure of social importance.
+Contexts where something like this might help—always with human judgment layered on top—include: macro or sector dashboards for market participants; editorial prioritization with explicit override; and policy or civil-society views on expectations over institutional outcomes, provided the epistemic caveats stay visible. Prediction-market platforms might treat an aggregate as a transparent category-level layer above individual contracts; that seems socially useful mainly when the construction is boringly legible.
+
+**Interpretive caveat (worth repeating).** The published number is a function of how \(s_i\) is built, the choice of \(\alpha\), and the integrity of \(p_i\) and \(\mathcal{A}_C\). I would read it as one model inside a family of defensible weighting rules, not as a uniquely “true” measure of social importance.
 
 ---
 
 ### 7. Limitations and extensions
 
 - The baseline treats focal outcomes as binary; multi-outcome or continuous structures may require expected-value or measure-theoretic aggregation.  
-- Attention is manipulable; multi-source design and agent-side robustness checks mitigate but do not eliminate this risk.  
-- Natural extensions include alternative compositional rules for \(s_i\) (e.g. geometric means), *learned* weights on historical panel data, and exogenous resolution feeds to reduce measurement error in \(T_i\).
+- Attention is manipulable; multi-source design and agent-side robustness checks mitigate but do not eliminate that risk—the least convenient case is coordinated flooding that looks “organic” across feeds.  
+- Natural extensions include alternative compositional rules for \(s_i\) (e.g. geometric means), *learned* weights on historical panel data (with all the usual overfitting caveats), and exogenous resolution feeds to reduce measurement error in \(T_i\).
 
 ---
 
 ### 8. Conclusion
 
-The Category Care Index is specified as an importance-weighted mean of elicited probabilities, with weights derived from normalized agent salience, attention, impact, and urgency, and with probabilities excluded from the weighting map for interpretability. The layered formulation clarifies dependencies and supports replication and audit. Full implementation requires only the listed inputs, fixed hyperparameters, and a documented schedule for refresh and resolution-based pruning.
+On balance, the **Category Care Index** is specified as an importance-weighted mean of elicited probabilities, with weights from normalized agent salience, attention, impact, and urgency, and with probabilities kept out of the weighting map for interpretability. The layered formulation is there to make dependencies explicit and to support replication and audit—not because layering is glamorous.
 
-**Further materials.** The present note is self-contained for definition and structure; program-level pseudocode, per-category weight grids, and deployment checklists can be versioned alongside this document as separate artifacts if needed for engineering handoff.
+Full implementation still reduces to the listed inputs, fixed hyperparameters, and a documented refresh schedule (plus honest monitoring of when \(\mathcal{A}_C\) or \(p_i\) are wrong). Open questions I would watch include: whether category-relative min–max hides slow-moving structural neglect; how sensitive dashboards are to \(\alpha\) in thin categories; and when markets themselves are thin enough that \(p_i\) is mostly prior.
+
+**Further materials.** This note is intentionally self-contained on definitions and structure; program-level pseudocode, per-category weight grids, and deployment checklists can live alongside it as separate artifacts when engineering handoff needs them.

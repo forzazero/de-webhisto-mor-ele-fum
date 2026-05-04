@@ -1,13 +1,20 @@
 # The Prediction Economy as a Spectrum: Normative Classification Beyond “Gambling”
 
 **Draft paper** — Morpheum Labs research notes  
-**Thesis (A):** Prediction markets are misclassified when treated as gambling *tout court*. Their normative and economic status depends on **participant quality**, **expected information value**, and **market design**. Uses that are high-agency, positive–expected-value from an information standpoint, and tightly **outcome-linked** (hedging, governance, verifiable claims) align these mechanisms with **information infrastructure** and **risk transfer** rather than with chance entertainment.
+
+**Thesis (A):** In my view, prediction markets are misclassified when we treat them as gambling *tout court*. Their normative and economic status plausibly depends on **participant quality**, **expected information value**, and **market design**. Uses that are **high-agency**, positive–expected-value from an information standpoint (not a promise that everyone wins), and tightly **outcome-linked**—hedging, governance, verifiable claims—sit closer to **information infrastructure** and **risk transfer** than to chance entertainment.
 
 ---
 
 ## Abstract
 
-Public debate often collapses prediction markets into a single moral category—gambling—while industry discourse sometimes romanticizes them as unqualified social goods. Neither pole supports coherent regulation, product strategy, or research design. This paper proposes a **systematic spectrum**: the same contractual primitive (binary or scoped event contracts, often blockchain-settled) can occupy different regions of a landscape defined by (1) **who participates** and with what skill and agency, (2) **what informational surplus** the market is structured to produce, and (3) **how resolution, subsidies, and question framing** shape social value. We synthesize two prominent public frames—Jeff Park’s argument that the investing–gambling boundary is **player-defined** (positive versus negative expected value, conditional on skill and edge) and Vitalik Buterin’s distinction between **info finance** and platform incentives that optimize for short-horizon “dopamine” volume (“corposlop”). We introduce the term **predictomic** to name the **mature prediction economy understood as a major financial landscape**—not a niche betting vertical but a default layer where uncertainty is routinely priced, hedged, and fed into decisions—and argue that the practical **future playbook** for finance assumes this layer at scale. A central driver of that scale is **massive deployment of AI agents** researching micro-markets, personalizing hedges, and supplying liquidity; much of the **marginal +EV** activity in that playbook will be **agent-driven**, which extends thesis A beyond retail morality to **alignment, delegation, and principal–agent** questions. The aim is not empirical proof of market efficiency or welfare, but a **classification framework** that analysts, builders, and policymakers can reuse when comparing election contracts, sports markets, policy conditionals, and hedging baskets. We also sketch how a **predictomic-grade** stack leans on **L1-anchored security**, **L2 scale and capital efficiency**, **zero-knowledge** tools for privacy and validity, and **interoperable** L2↔L1 asset paths; we outline how **Morpheum L1** (Morpheum Labs) is positioned to host **shared economic alignment** and **oracle coordination** across otherwise fragmented L2-scale domains—while stating **fundamental limitations** (oracles, bridges, prover economics) that no narrative of “trustlessness” should elide. Section 9 separates **technical proofs** (verifiable security and architecture claims) from **business proofs** (traction, adoption, and market validation). We close with design levers that move activity toward the information-infrastructure pole and with honest limits (liquidity, manipulation, vulnerable users).
+Public debate often collapses prediction markets into a single moral bucket—gambling—while some industry talk swings to the opposite pole and treats them as unqualified social goods. On balance, neither framing gives regulators, builders, or researchers a usable map.
+
+This note proposes a **spectrum**: the same contractual primitive (binary or scoped event contracts, often blockchain-settled) can land in different places depending on (1) **who participates** and with what skill and agency, (2) **what informational surplus** the market is structured to produce, and (3) **how resolution, subsidies, and question framing** shape social value. I synthesize two public threads—Jeff Park’s argument that the investing–gambling boundary is partly **player-defined** (positive versus negative expected value, conditional on skill and edge) and Vitalik Buterin’s distinction between **info finance** and product incentives that optimize for short-horizon “dopamine” volume (“corposlop”). I use **predictomic** to name the **prediction economy understood as a major financial landscape**: not only a niche betting vertical but a layer where uncertainty is routinely priced, hedged, and fed into decisions. The practical **future playbook** for finance may well assume something like that layer at scale—though the value of that assumption should not be overstated.
+
+A central driver in that playbook—if it materializes—is **large-scale deployment of AI agents** researching micro-markets, personalizing hedges, and supplying liquidity. Much of the **marginal +EV** activity could be **agent-driven**, which extends thesis A beyond retail morality into **alignment, delegation, and principal–agent** problems.
+
+The aim here is not empirical proof of efficiency or welfare, but a **classification framework** analysts, builders, and policymakers can reuse when comparing election contracts, sports markets, policy conditionals, and hedging baskets. I also sketch how a **predictomic-grade** stack leans on **L1-anchored security**, **L2 scale and capital efficiency**, **zero-knowledge** tools for privacy and validity, and **interoperable** L2↔L1 asset paths; I outline how **Morpheum L1** (Morpheum Labs) is positioned to host **shared economic alignment** and **oracle coordination** across fragmented L2-scale domains—while stating **fundamental limitations** (oracles, bridges, prover economics) that no story of “trustlessness” should hide. Section 9 separates **technical proofs** (verifiable security and architecture claims) from **business proofs** (traction and adoption). I close with design levers that nudge activity toward the information-infrastructure pole—and with honest limits around liquidity, manipulation, and vulnerable users.
 
 **Keywords:** prediction markets, predictomic, info finance, spectrum, normative classification, agency, market design, AI agents, +EV, zero-knowledge, L1/L2, interoperability, capital efficiency, trust-minimization, Morpheum, economic alignment
 
@@ -15,21 +22,21 @@ Public debate often collapses prediction markets into a single moral category—
 
 ## 1. Introduction
 
-Prediction markets and closely related event-contract platforms have moved from academic curiosities to significant liquidity venues. Their visibility has revived an old question: are they **gambling**, **investing**, **insurance**, **news**, or **infrastructure**? Legal systems and editorial boards often pick one label and stick to it. That flattening matters. It shapes licensing, advertising rules, tax treatment, and social legitimacy; it also steers product roadmaps toward volume at the expense of signal.
+Prediction markets—and close cousins—have moved from academic curiosities to venues with real liquidity. That visibility revives an old question: are they **gambling**, **investing**, **insurance**, **news**, or **infrastructure**? Legal systems and editorial boards often pick one label and stop there. I think that flattening matters: it shapes licensing, advertising rules, tax treatment, and legitimacy; it also nudges product teams toward volume at the expense of signal.
 
-This paper advances **thesis A**: the appropriate unit of analysis is not the **game** alone but the **triplet** of participants, information economics, and mechanism. Where sophisticated, truth-seeking or hedge-motivated trading meets clear resolution and socially decision-relevant questions, the activity sits far from the cognitive and moral prototype of **chance entertainment** for passive retail. Where platforms maximize engagement through naive flow into short-horizon noise, the same instrument class slides toward a **gambling equilibrium**—what Buterin has called an unhealthy reliance on “corposlop” product–market fit.
+This paper advances **thesis A**. The unit of analysis is not the **game** alone but the **triplet** of participants, information economics, and mechanism. Where sophisticated, truth-seeking or hedge-motivated trading meets clear resolution and decision-relevant questions, the activity sits far—**in prototype**—from passive retail **chance entertainment**. Where platforms maximize engagement by routing naive flow into short-horizon noise, the same instrument class can slide toward a **gambling equilibrium**—what Buterin has described as an unhealthy tilt toward “corposlop” product–market fit.
 
-The contribution is **taxonomic and systematic**. We integrate:
+The contribution is **taxonomic**. I integrate:
 
-- **Park (public thread, April 2026):** The boundary between investing and gambling is not fixed by the instrument; it depends on **who is playing** and whether participation is skill-backed and +EV in an appropriate sense.
+- **Park (public thread, April 2026):** The boundary between investing and gambling is not fixed by the instrument alone; it depends on **who is playing** and whether participation is skill-backed and +EV in an appropriate sense.
 
-- **Buterin (2024 “info finance” essay; 2026 commentary):** A constructive branch—“info finance”—uses markets to elicit and distill information across governance, science, media, and public goods; a degenerate branch overweights crypto-price and sports-style flow that lacks “long-term fulfillment or societal information value.”
+- **Buterin (2024 “info finance” essay; 2026 commentary):** A constructive branch—“info finance”—uses markets to elicit information across governance, science, media, and public goods; a degenerate branch overweights crypto-price and sports-style flow that lacks, in his framing, “long-term fulfillment or societal information value.”
 
-- **Buterin (Bankless interview, ~August 2025):** Prediction markets as part of an **open access order** in which meritocratic participation can succeed, and as a way to **scale expensive human judgment** when combined with the right gadgets (e.g. jury-like or hybrid mechanisms).
+- **Buterin (Bankless interview, ~August 2025):** Prediction markets as part of an **open access order** where meritocratic participation can succeed, and as a way to **scale expensive human judgment** when paired with the right mechanisms (e.g. jury-like or hybrid designs).
 
-We further argue that once this spectrum is internalized, the natural strategic object is not a single app but the **predictomic**: the **macro-scale financial landscape** in which event contracts, oracles, hedging workflows, and info-finance mechanisms sit alongside credit and equities as **first-class plumbing**. The **future playbook**—for treasuries, asset managers, platforms, and regulators—is written assuming that landscape exists and that **large populations of AI agents** will supply much of the **skill-weighted, +EV** flow (research, calibration, personalization, and execution) that makes thin markets viable and personalized hedging scalable.
+Once this spectrum feels intuitive, the strategic object may stop being a single app and become the **predictomic**: the **macro-scale financial landscape** where event contracts, oracles, hedging workflows, and info-finance mechanisms sit beside credit and equities as **first-class plumbing**. The **future playbook**—for treasuries, asset managers, platforms, and regulators—might be written assuming that landscape exists and that **large populations of AI agents** supply much of the **skill-weighted, +EV** flow (research, calibration, personalization, execution) that makes thin markets viable and personalized hedging more scalable. That is a scenario, not a forecast with tight error bars.
 
-Section 2 argues why **binary** gambling labels misfire. Section 3 defines **three dimensions** of the spectrum. Section 4 maps **archetypal regions** of the prediction economy. Section 5 develops the **predictomic** term, the **future playbook**, and **agentic +EV**. Section 6 examines **settlement infrastructure**: zero-knowledge tools, **L1** base layer roles, **L2** scale, **capital efficiency**, **trust-minimized** (not magic-trustless) design, **decentralization** tradeoffs, **interoperability** requirements, **moving assets between L2 and L1**, and **Morpheum L1** as a **coordination and economic-alignment** answer to **multi-L2** fragmentation (§6.9), followed by **fundamental limits** (§6.10). Section 7 lists **design levers**. Section 8 discusses implications and limits. Section 9 presents **Morpheum proofs**—**technical** evidence first (cryptographic and systems arguments drawn from Morpheum Labs design documentation), then **business** proof categories to be populated from external materials such as the [**Morpheum One-Pager**](https://www.notion.so/Morpheum-One-Pager-35045e9b1392808c8bfec2d0653e2e79). Section 10 concludes.
+Section 2 argues why **binary** gambling labels misfire. Section 3 defines **three dimensions**. Section 4 maps **archetypal regions**. Section 5 develops **predictomic**, the **future playbook**, and **agentic +EV**. Section 6 examines **settlement infrastructure**—ZK, **L1** roles, **L2** scale, **capital efficiency**, **trust-minimized** design, **decentralization** tradeoffs, **interoperability**, **moving assets between L2 and L1**, and **Morpheum L1** as a **coordination** answer to **multi-L2** fragmentation (§6.9), plus **fundamental limits** (§6.10). Section 7 lists **design levers**. Section 8 discusses implications and limits. Section 9 presents **Morpheum proofs**—**technical** evidence first, then **business** categories (to be filled from external materials such as the [**Morpheum One-Pager**](https://www.notion.so/Morpheum-One-Pager-35045e9b1392808c8bfec2d0653e2e79)). Section 10 concludes.
 
 ---
 
@@ -37,31 +44,31 @@ Section 2 argues why **binary** gambling labels misfire. Section 3 defines **thr
 
 ### 2.1 Player-defined boundaries
 
-Park’s widely circulated framing holds that **investing versus gambling** is not purely **game-defined**. The same rules can host professionals with models and edges—or retail flow chasing stimulation. Poker illustrates the point: structurally a wagering game, economically a skill-dominated ecosystem at the high end. Analogously, **equity markets** can behave more like sentiment lotteries for uninformed intraday trading than like prediction markets for carefully scoped events with transparent resolution.
+Park’s widely circulated framing holds that **investing versus gambling** is not purely **game-defined**. The same rules can host professionals with models and edges—or retail flow chasing stimulation. Poker is the usual illustration: structurally a wagering game, economically skill-dominated at the high end. **Equity markets**, similarly, can behave more like sentiment lotteries for uninformed intraday trading than like prediction markets for carefully scoped events with transparent resolution.
 
-If that is right, **morally and legally collapsing prediction markets into gambling** because they use stake and uncertainty ignores the dominant driver of welfare and harm: **participant mix, information structure, and externalities**, not the mere presence of a payoff on an unknown outcome.
+If that picture is roughly right, **morally and legally collapsing prediction markets into gambling** because they use stake and uncertainty may ignore the dominant drivers of welfare and harm: **participant mix, information structure, and externalities**, not the mere presence of a payoff on an unknown outcome.
 
 ### 2.2 Platform-defined equilibria
 
-Buterin’s critique sharpens the institutional side: platforms face incentives to capture **volume** from **naive traders**, especially in bear markets or competitive consumer finance. Short-horizon crypto-direction and sports-style markets deliver dopamine-like engagement but weak **information surplus**. He describes over-reliance on this pattern as “cursed”: business models that profit from the wrong users undermine long-term legitimacy and accurate signals.
+Buterin’s critique sharpens the institutional side: platforms face incentives to capture **volume** from **naive traders**, especially in bear markets or crowded consumer finance. Short-horizon crypto-direction and sports-style markets can deliver engagement that resembles a dopamine loop but weak **information surplus**. He describes over-reliance on this pattern as “cursed”: business models that profit from the wrong users can undermine long-term legitimacy and accurate signals.
 
-Thus the spectrum is not only **psychological** (who clicks) but **industrial**: product, fees, marketing, and market lists **select** who shows up and what questions get liquid.
+So the spectrum is not only **psychological** (who clicks) but **industrial**: product, fees, marketing, and market lists **select** who shows up and what questions get liquid.
 
 ---
 
 ## 3. Three Dimensions of the Spectrum
 
-We treat the **prediction economy** as the set of venues and mechanisms that trade on **verifiable or scrutable outcomes** (events, metrics, resolutions) with upfront rules. Three dimensions locate any instance on the landscape.
+Let’s recap: I treat the **prediction economy** as venues and mechanisms that trade on **verifiable or scrutable outcomes** (events, metrics, resolutions) with upfront rules. Three dimensions locate any instance.
 
 ### 3.1 Dimension I — Participant quality and agency
 
-**Low pole:** Passive retail, entertainment-motivated flow, limited research, short holding horizons, price-taking noise.
+**Low pole:** Passive retail, entertainment-motivated flow, limited research, short horizons, price-taking noise.
 
-**High pole:** Institutions and individuals with **real exposure** (natural hedgers), professional forecasters, researchers, or **software agents** (often AI-mediated) operating under explicit mandates and verifiable track records; deliberate trade sizing; intent aligned with **resolution truth** or **risk transfer**.
+**High pole:** Institutions and individuals with **real exposure** (natural hedgers), professional forecasters, researchers, or **software agents** (often AI-mediated) operating under explicit mandates and track records; deliberate sizing; intent aligned with **resolution truth** or **risk transfer**.
 
-This tracks Park’s **high-agency, high-skill** productive participation versus low-agency dopamine seeking, and Buterin’s contrast between **sophisticated** truth-seeking liquidity and **naive** opinion. On the **predictomic** horizon (§5), a growing share of the **high pole** is **non-human**: agents whose +EV comes from integration of data, pace, and specialization across thousands of small markets—exactly the regime Buterin sketches when linking LLMs to **micro-markets** and personalized baskets.
+This tracks Park’s **high-agency, high-skill** participation versus low-agency stimulation-seeking, and Buterin’s contrast between **sophisticated** truth-seeking liquidity and **naive** opinion. On a **predictomic** horizon (§5), a growing share of the **high pole** may be **non-human**: agents whose +EV comes from integrating data, pace, and specialization across many small markets—somewhat like the regime Buterin sketches when linking LLMs to **micro-markets** and personalized baskets.
 
-*Note:* “High skill” is contextual: skill at forecasting GDP differs from skill at sports modeling. The dimension is **domain-appropriate competence and intent**, not elitism in the abstract.
+*Note:* “High skill” is contextual: skill at forecasting GDP differs from skill at sports modeling. The dimension is **domain-appropriate competence and intent**, not abstract elitism.
 
 ### 3.2 Dimension II — Expected information value
 
@@ -69,7 +76,7 @@ This tracks Park’s **high-agency, high-skill** productive participation versus
 
 **High pole:** Prices **aggregate dispersed information** that improves allocations—election or policy uncertainty for planners, science replication bets for funders, organizational KPI markets for managers, **conditional** (“if policy X, then Y”) estimates for governance.
 
-This aligns with **info finance**: markets as **incentive-compatible sensors**, not only as wagers.
+This aligns with **info finance**: markets as **incentive-compatible sensors**, not only wagers.
 
 Operational proxies (imperfect but usable):
 
@@ -85,13 +92,13 @@ Operational proxies (imperfect but usable):
 
 Buterin emphasizes **conditional markets**, **generalized hedging** (including personalized baskets tied to real exposures), and combinations like prediction layers plus jury mechanisms (e.g. public-goods valuation). Park emphasizes **finite expiry** and **direct truth betting** relative to the muddy basis risk of endless equity narratives.
 
-Design turns the same **hope or hype** into either a **sharp instrument** or a **slot machine**.
+Design can turn the same **hope or hype** into either a **sharp instrument** or something closer to a **slot machine**. The least convenient case is mediocre design with sophisticated participants—skill without social surplus—or good questions with broken resolution.
 
 ---
 
 ## 4. Archetypal Regions of the Landscape
 
-The three dimensions are **correlated in practice** but not identical. The following **archetypes** are ideal types for discussion; real platforms mix them.
+The three dimensions are **correlated in practice** but not identical. The **archetypes** below are ideal types; real platforms mix them.
 
 | Region | Participants | Information value | Design | Label (heuristic) |
 |--------|----------------|-------------------|--------|-------------------|
@@ -100,7 +107,7 @@ The three dimensions are **correlated in practice** but not identical. The follo
 | **C — Corposlop attractor** | Naive-heavy, volume-chased | Low: dopamine, weak societal learning | Short-horizon crypto/sports emphasis | Gambling-adjacent equilibrium |
 | **D — Institutional hedging** | Firms with natural exposure | High for counterparties | OTC-like or listed hedges on events | Insurance / risk transfer |
 
-**Region A** is the normative **north star** of thesis A: **high agency**, **high information surplus**, **outcome-linked design**. **Region C** is what thesis A warns against when analysts call “all prediction markets” one thing; it is the same **family** of contracts driven into a **different attractor** by incentives and question selection.
+**Region A** is the normative **north star** of thesis A: **high agency**, **high information surplus**, **outcome-linked design**. **Region C** is what thesis A warns against when analysts say “all prediction markets” are one thing; it is the same **family** of contracts driven into a **different attractor** by incentives and question selection.
 
 **Region D** makes the **speculation–insurance** duality explicit: one side’s “bet” is another’s **hedge**—a standard point in derivatives economics, recovered here for event contracts.
 
@@ -108,61 +115,61 @@ The three dimensions are **correlated in practice** but not identical. The follo
 
 ## 5. The Predictomic: Major Landscape, Future Playbook, and Agentic +EV
 
-The spectrum in Sections 3–4 is intentionally **agnostic about scale**: it classifies instances, not GDP shares. This section names the **scaled outcome** that the thesis is steering toward and ties it to **AI-driven +EV**.
+Sections 3–4 are intentionally **agnostic about scale**: they classify instances, not GDP shares. This section names the **scaled outcome** the thesis is steering toward and ties it to **AI-driven +EV**—as a scenario worth taking seriously, not as inevitability.
 
 ### 5.1 Terminology — *predictomic*
 
-We use **predictomic** (analogous in role—not in rigidity—to how “tokenomic” named a bundle of incentive questions around tokens) to denote the **prediction economy understood as a major financial landscape**: a persistent layer where **verifiable-outcome contracts**, **oracle-backed resolution**, **conditional and hedging structures**, and **info-finance subsidies** are **routine infrastructure**, not an exotic corner of consumer betting.
+I use **predictomic** (analogous in *role*—not in rigidity—to how “tokenomic” named a bundle of incentive questions around tokens) for the **prediction economy understood as a major financial landscape**: a persistent layer where **verifiable-outcome contracts**, **oracle-backed resolution**, **conditional and hedging structures**, and **info-finance subsidies** are **routine infrastructure**, not an exotic corner of consumer betting.
 
 - **Not synonymous with “Polymarket” or any single venue.** The predictomic is **ecosystem-level**: rails, standards, agent APIs, institutional workflows, and regulatory categories that assume **event-risk** and **claim-pricing** are ordinary inputs to treasury, media, science funding, and governance.
 
-- **Relationship to thesis A.** Misclassification as mere gambling is especially costly when the **landscape** is predictomic-scale: policy and risk models that treat the layer as **illegitimate** forego **hedging and signal** that societies will otherwise demand under uncertainty.
+- **Relationship to thesis A.** Misclassification as mere gambling may be especially costly if the **landscape** is predictomic-scale: policy and risk models that treat the layer as **illegitimate** could forego **hedging and signal** that societies will otherwise want under uncertainty—while uncritical blessing could normalize harmful pools. Both mistakes are live risks.
 
 ### 5.2 The future playbook
 
-The **playbook** is the strategic default once the predictomic is treated as central:
+The **playbook** is the strategic default *if* the predictomic is treated as central:
 
-- **Allocation and risk:** Event exposures (policy, climate, supply chain, reputation, protocol, election) are **boxed** with conditional markets and baskets the way interest-rate risk is boxed with swaps today.
+- **Allocation and risk:** Event exposures (policy, climate, supply chain, reputation, protocol, election) are **boxed** with conditional markets and baskets—somewhat like interest-rate risk is boxed with swaps today.
 
 - **Information:** Decision-makers cite **market-implied probabilities** alongside polls and models; **hybrid mechanisms** (prediction + jury + AI assist) scale judgments too expensive for single committees.
 
-- **Participation mix:** Platforms compete on **signal quality** and **hedging utility**, not only on retail engagement—consistent with steering away from corposlop attractors.
+- **Participation mix:** Platforms compete on **signal quality** and **hedging utility**, not only retail engagement—consistent with steering away from corposlop attractors.
 
-- **Infrastructure:** Settlement, privacy (hedging without surveillance theater), and **cross-venue composability** are design primitives—aligned with “world ledger” narratives where serious finance does not live only on siloed apps.
+- **Infrastructure:** Settlement, privacy (hedging without surveillance theater), and **cross-venue composability** as design primitives—aligned with “world ledger” narratives where serious finance does not live only on siloed apps.
 
-The spectrum is the **map**; the predictomic is the **territory** those maps describe when the layer stops being optional.
+The spectrum is the **map**; the predictomic is the **territory** those maps describe when the layer stops being optional—for some actors and jurisdictions, even if not globally uniform.
 
 ### 5.3 Massive AI agents and the locus of +EV
 
-Buterin’s extensions—**AI turbocharging** on tiny markets, **LLM-built hedging baskets** from personal expense and risk data—imply a **quantitative shift** in who does the work of research, quoting, and rebalancing. Jeff Park’s **+EV** framing, applied here, suggests:
+Buterin’s extensions—**AI turbocharging** on tiny markets, **LLM-built hedging baskets** from personal expense and risk data—imply a **quantitative shift** in who does research, quoting, and rebalancing. Jeff Park’s **+EV** framing, applied here, suggests:
 
-- **Marginal productive capacity** on a thick predictomic layer is **agent-shaped**: models that never sleep, ingest heterogeneous feeds, and maintain positions across micro-outcomes humans would not manually track.
+- **Marginal productive capacity** on a thick predictomic layer may be **agent-shaped**: models that ingest heterogeneous feeds and maintain positions across micro-outcomes humans would not manually track.
 
-- **Major +EV activities** (information aggregation, cross-market arbitrage, personalized hedge construction, monitoring of resolution criteria) **cluster** in agent deployments **massive** in count and in aggregate capital—not because humans disappear, but because **human attention** becomes the scarce factor setting **objectives, constraints, and liability**.
+- **Major +EV activities** (information aggregation, cross-market arbitrage, personalized hedge construction, monitoring of resolution criteria) **cluster** in agent deployments **large** in count and aggregate capital—not because humans disappear, but because **human attention** becomes the scarce factor setting **objectives, constraints, and liability**.
 
-- **Implications for classification.** Thesis A was framed around participant **quality** and **design**; at predictomic scale, **participant type** explicitly includes **delegated autonomy**. Normative and regulatory discussion must add **principal–agent alignment**, **model governance**, and **collusion or manipulation by agent fleets**—not only “retail gambling.”
+- **Implications for classification.** Thesis A was framed around participant **quality** and **design**; at predictomic scale, **participant type** explicitly includes **delegated autonomy**. Normative and regulatory discussion likely needs **principal–agent alignment**, **model governance**, and **collusion or manipulation by agent fleets**—not only “retail gambling.”
 
-This does not guarantee utopian efficiency; it sharpens the **stakes**: the predictomic playbook makes **info finance** and **hedging** technically feasible at volume, while making **failure modes** (corposlop with bots, or manipulated oracle games) **systemic** rather than anecdotal.
+This does not guarantee efficiency or fairness; it raises the **stakes**. The predictomic playbook could make **info finance** and **hedging** technically feasible at volume while making **failure modes** (corposlop with bots, manipulated oracle games) **systemic** rather than anecdotal—if coordination and monitoring lag deployment.
 
 ---
 
 ## 6. Settlement Stack: Zero-Knowledge, L1/L2, Capital Efficiency, Trust Minimization, and Interoperability
 
-Normative classification (thesis A) is largely **application-layer**. A **predictomic** layer at scale still needs a **credible settlement and transport** story: where collateral lives, how outcomes finalize, how agents move positions across venues, and what users must **trust** in practice. This section is not a protocol specification; it names **design elements** and **hard limits**.
+Normative classification (thesis A) lives mostly at the **application layer**. A **predictomic** layer at scale still needs a **credible settlement and transport** story: where collateral lives, how outcomes finalize, how agents move positions across venues, and what users must **trust** in practice. This section is not a protocol specification; it names **design elements** and **hard limits**.
 
 ### 6.1 Why the stack matters for the predictomic
 
-- **Hedging and employment politics:** Sensitive exposures (payroll, jurisdiction, supply chain) benefit from **privacy-preserving** settlement paths where possible (§6.2).
-- **Agentic +EV:** Agents optimize across **many markets and chains**; fragmentation without **interoperability** (§6.7) taxes their edge and raises **capital lock-up** (§6.6).
-- **Finality and disputes:** Event markets ultimately depend on **oracle rules** and **on-chain state**; **L1** anchoring (§6.5) remains the clearest way to align economic security with **canonical resolution**—while execution stays cheap on **L2** (§6.5).
+- **Hedging and employment politics:** Sensitive exposures (payroll, jurisdiction, supply chain) may benefit from **privacy-preserving** settlement paths where possible (§6.2).
+- **Agentic +EV:** Agents optimize across **many markets and chains**; fragmentation without **interoperability** (§6.7) taxes edge and raises **capital lock-up** (§6.6).
+- **Finality and disputes:** Event markets depend on **oracle rules** and **on-chain state**; **L1** anchoring (§6.5) remains—in many designs—the clearest way to align economic security with **canonical resolution**, while execution stays cheaper on **L2** (§6.5).
 
 ### 6.2 Zero-knowledge (ZK) as supporting machinery
 
 **ZK** enters the predictomic stack in several **distinct** roles; conflating them causes confusion:
 
-- **Privacy for positions and flows:** Proofs that a user’s hedge or basket satisfies **risk / compliance constraints** without revealing raw holdings—relevant to thesis A’s **info infrastructure** pole when **surveillance** would distort participation.
-- **Validity rollups (ZK rollups):** L2 batches transactions under **succinct proofs** verified on L1, reducing the **data and verification footprint** on the base layer while inheriting L1’s settlement guarantees—subject to **prover** and **availability** assumptions (§6.10).
-- **Bridging and cross-domain claims:** ZK can help **attest** state transitions between domains (e.g. “this L2 balance is consistent with L1 rules”) more **compactly** than naive relaying—but **does not by itself** remove all **governance and implementation** risk in bridges.
+- **Privacy for positions and flows:** Proofs that a hedge or basket satisfies **risk / compliance constraints** without revealing raw holdings—relevant to thesis A’s **info infrastructure** pole when **surveillance** would distort participation.
+- **Validity rollups (ZK rollups):** L2 batches under **succinct proofs** verified on L1, reducing **data and verification footprint** on the base layer while inheriting L1 settlement guarantees—subject to **prover** and **availability** assumptions (§6.10).
+- **Bridging and cross-domain claims:** ZK can **attest** state transitions between domains more **compactly** than naive relaying—but **does not by itself** remove **governance and implementation** risk in bridges.
 
 ZK is **not** a substitute for **sound oracle design** or **clear market definitions**; it is **constraint technology**: shrinking what must be revealed, or shrinking verification cost, under explicit cryptographic assumptions.
 
@@ -230,25 +237,25 @@ Regulatory **travel rule** and **sanctions** layers may **constrain** interopera
 
 **Requirement for predictomic products:** users and agents need **predictable** latency and **transparent** trust assumptions for **margin top-ups**, **hedge unwinds**, and **cross-venue** arbitrage—otherwise **Dimension III** (clean linkage) degrades at the **plumbing** layer.
 
-### 6.9 Morpheum L1: filling the coordination and economic-alignment gap across L2-scale domains
+### 6.9 Morpheum L1: coordination and economic alignment across L2-scale domains
 
-The **barbell** in §6.5 leaves a recurring **middle problem**: execution-centric **L2s** (rollups, app chains, high-throughput shards) optimize for **local** throughput, fees, and sequencer economics. For the **predictomic**, that locality creates **gaps** that pure L2↔L1 bridges do not fully close:
+The **barbell** in §6.5 leaves a recurring **middle problem**: execution-centric **L2s** optimize for **local** throughput, fees, and sequencer economics. For the **predictomic**, that locality creates **gaps** that pure L2↔L1 bridges may not fully close:
 
-- **Oracle and resolution coherence:** The same underlying event can be **priced or resolved differently** on different domains (§6.7), breaking **info finance** as a **single** societal signal and inviting **resolution arbitrage** rather than information aggregation.
-- **Economic alignment:** Without a **shared anchor**, subsidy budgets, reporter bonds, and **fee→signal** feedback loops **splinter**—each domain captures short-term volume while **externalizing** the cost of **bad resolution** or **corposlop** dynamics to the wider system.
-- **Agent coordination:** Massive **AI-agent** +EV flow (§5.3) needs **fast, inspectable settlement**, **portable mandates**, and **cross-domain** execution paths; siloed L2 APIs multiply **latency**, **capital fragmentation** (§6.6), and **audit** surface.
+- **Oracle and resolution coherence:** The same underlying event can be **priced or resolved differently** on different domains (§6.7), weakening **info finance** as a **single** societal signal and inviting **resolution arbitrage** rather than information aggregation.
+- **Economic alignment:** Without a **shared anchor**, subsidy budgets, reporter bonds, and **fee→signal** feedback loops **splinter**—each domain captures short-term volume while **externalizing** the cost of **bad resolution** or **corposlop** dynamics.
+- **Agent coordination:** Large **AI-agent** +EV flow (§5.3) needs **fast, inspectable settlement**, **portable mandates**, and **cross-domain** execution paths; siloed L2 APIs multiply **latency**, **capital fragmentation** (§6.6), and **audit** surface.
 
-**Morpheum Labs** advances **Morpheum L1**—in internal design documentation described as a **high-throughput, sharded DAG-BFT** style base layer with **gasless / agent-native** execution paths—as a **coordination and economic-alignment hub** intended to complement those silos rather than replace every execution environment:
+**Morpheum Labs** advances **Morpheum L1**—in internal design documentation described as a **high-throughput, sharded DAG-BFT** style base layer with **gasless / agent-native** execution paths—as a **coordination and economic-alignment hub** intended to **complement** silos rather than replace every execution environment:
 
-1. **L1-grade alignment hooks.** Critical **incentive machinery** (oracle reporter staking/slashing semantics, **canonical** resolution references for cross-domain markets, and **treasury/subsidy** routing for info-finance mechanisms) can anchor on **Morpheum L1** so that **many** L2-scale domains inherit **one** explicit **economic security story** for “what counts as settled truth” and who is paid or punished for feeding it—reducing **drift** between venues.
+1. **L1-grade alignment hooks.** Critical **incentive machinery** (oracle reporter staking/slashing semantics, **canonical** resolution references for cross-domain markets, **treasury/subsidy** routing for info-finance mechanisms) can anchor on **Morpheum L1** so **many** L2-scale domains inherit **one** explicit **economic security story** for “what counts as settled truth” and who is paid or punished for feeding it—reducing **drift** between venues.
 
-2. **Unified oracle and risk pipeline (predictomic-sensitive).** Morpheum’s **Oracle Engine** design (multi-source ingestion—CEX, Pyth, Chainlink-style feeds—with failover, TWAP-style processing, and low-latency output APIs) is aimed at **one** **aggregated** price and risk surface that **execution shards** and external rollups can **read** instead of each reinventing **incompatible** feeds. That directly attacks **oracle inconsistency** across domains.
+2. **Unified oracle and risk pipeline (predictomic-sensitive).** Morpheum’s **Oracle Engine** design (multi-source ingestion—CEX, Pyth, Chainlink-style feeds—with failover, TWAP-style processing, low-latency output APIs) aims at **one** **aggregated** price and risk surface that **execution shards** and external rollups can **read** instead of each reinventing **incompatible** feeds—attacking **oracle inconsistency** across domains.
 
-3. **Throughput and latency fit for agent fleets.** Agent-native signing (including **hybrid ECDSA + ML-DSA-44** for long-lived **delegation** and mandate security) and **sub-millisecond-class** operational targets in Morpheum’s agent stack align with §5.3: **marginal +EV** work is **machine-paced**; an L1 that cannot absorb **burst settlement** and **high-frequency mandate churn** becomes the bottleneck **above** individual L2s.
+3. **Throughput and latency fit for agent fleets.** Agent-native signing (including **hybrid ECDSA + ML-DSA-44** for long-lived **delegation** and mandate security) and **sub-millisecond-class** operational targets in Morpheum’s agent stack align with §5.3: **marginal +EV** work is **machine-paced**; an L1 that cannot absorb **burst settlement** and **high-frequency mandate churn** risks becoming the bottleneck **above** individual L2s.
 
-4. **Interoperability as a first-class requirement.** Morpheum’s cross-chain work (e.g. **Hyperlane-class** messaging and attested lock/mint flows in documented BTC/Omni integrations) illustrates the **intent**: treat **bridges** not as afterthoughts but as **coordination edges**—so collateral and outcome attestations can **move** between **foreign L1/L2 ecosystems** and Morpheum’s **alignment layer** with **explicit** trust assumptions (§6.3–6.8).
+4. **Interoperability as a first-class requirement.** Morpheum’s cross-chain work (e.g. **Hyperlane-class** messaging and attested lock/mint flows in documented BTC/Omni integrations) illustrates **intent**: treat **bridges** not as afterthoughts but as **coordination edges**—so collateral and outcome attestations can **move** between **foreign L1/L2 ecosystems** and Morpheum’s **alignment layer** with **explicit** trust assumptions (§6.3–6.8).
 
-**Scope caveat.** This is a **research and product thesis**, not a claim that Morpheum **supplants** other base layers in all roles. In a **multi-hub** world, Morpheum L1 is framed here as the place where **predictomic-specific** **coordination**—shared resolution economics, oracle aggregation, agent settlement discipline—**concentrates**, while **general-purpose smart-contract L2s** continue to host arbitrary application logic. Success depends on **adoption**, **standards**, and **honest** acknowledgment of the same **fundamental limits** listed in §6.10. A structured inventory of **technical** versus **business** evidence appears in **§9**.
+**Scope caveat.** This is a **research and product thesis**, not a claim that Morpheum **supplants** other base layers in all roles. In a **multi-hub** world, Morpheum L1 is framed here as where **predictomic-specific** **coordination**—shared resolution economics, oracle aggregation, agent settlement discipline—**might concentrate**, while **general-purpose smart-contract L2s** continue to host arbitrary application logic. Success depends on **adoption**, **standards**, and honest acknowledgment of **fundamental limits** (§6.10). **§9** inventories **technical** versus **business** evidence.
 
 ### 6.10 Fundamental limitations (honest ledger)
 
@@ -279,13 +286,13 @@ Builders and policymakers implicitly choose positions on the spectrum. Non-exhau
 
 6. **Reputation and skill surfaces:** On-chain or portable track records can reinforce **high-skill participation** (with known risks of new exclusion dynamics).
 
-7. **Agent-native interfaces and audit:** APIs, proofs of mandate, and **machine-readable market specs** so AI agents can operate **inspectably** (limits on hidden collusion, clear bounds on leverage)—raising **predictomic** resilience as agent volume dominates marginal +EV; align with **cross-chain** standards where agents route flow (§6.7).
+7. **Agent-native interfaces and audit:** APIs, proofs of mandate, and **machine-readable market specs** so AI agents operate **inspectably** (limits on hidden collusion, clear bounds on leverage)—raising **predictomic** resilience as agent volume dominates marginal +EV; align with **cross-chain** standards where agents route flow (§6.7).
 
 8. **Human–agent division of labor:** Reserve **objective-setting** and **values constraints** for people; push **calibration, scanning, and execution** to models—consistent with personalized hedging and micro-market depth without assuming infinite human research hours.
 
 9. **Coordination L1 for fragmented L2s:** Where **many rollups or shards** split liquidity and **resolution semantics**, anchor **shared oracle economics**, **canonical market references**, and **cross-domain agent settlement** on a base layer designed for that role—per the **Morpheum L1** hypothesis in §6.9—rather than treating each L2 as its own isolated predictomic universe.
 
-These levers do not guarantee wisdom; they **shift incentives** toward thesis A’s pole and toward a **healthy predictomic** rather than a bot-ridden corposlop attractor.
+These levers do not guarantee wisdom; they **shift incentives** toward thesis A’s pole and toward a **healthier predictomic** rather than a bot-ridden corposlop attractor.
 
 ---
 
@@ -301,7 +308,7 @@ These levers do not guarantee wisdom; they **shift incentives** toward thesis A�
 
 **Empirical gap.** This paper is **conceptual**. Welfare claims require empirical work: calibration errors, crowding out of other information sources, and real-world harm metrics by **region** of the spectrum.
 
-**Agent concentration.** If +EV flow concentrates in **agent fleets**, inequality in **compute, data, and capital** may replicate or surpass traditional market asymmetries; the predictomic playbook must confront **access** and **monitoring**, not only label prediction markets as “good” or “bad.”
+**Agent concentration.** If +EV flow concentrates in **agent fleets**, inequality in **compute, data, and capital** may replicate or surpass traditional market asymmetries; the predictomic playbook must confront **access** and **monitoring**, not only whether prediction markets are “good” or “bad.”
 
 **Infrastructure romanticism.** **ZK**, **L2**, and **bridges** expand the **design space** but inherit **hard limits** (§6.10). Overselling **trustlessness**, **capital efficiency**, or a **coordination L1** (§6.9) invites **disillusionment** and **underpriced operational risk**—the same mistake thesis A avoids by rejecting **single-label** narratives about prediction markets themselves.
 
@@ -345,9 +352,11 @@ Populate from the **One-Pager** and live metrics; typical categories:
 
 ## 10. Conclusion
 
-The **prediction economy** is not one thing. It spans a **systematic spectrum** defined by **who trades**, **what information the market is for**, and **how questions resolve**. Treating the entire class as **gambling** obscures the **info finance** and **risk-transfer** regions that thesis A highlights; treating it as uniformly virtuous ignores **corposlop** attractors. Park supplies a **player-centric** lens; Buterin supplies **mechanism and product** vocabulary and a recognized failure mode. Together they support a **single integrated thesis**: normative and policy judgment should track **position on the spectrum**, not the **genus label** alone.
+In this piece so far: the **prediction economy** is not one thing. It spans a **spectrum** defined by **who trades**, **what information the market is for**, and **how questions resolve**. Treating the entire class as **gambling** obscures **info finance** and **risk-transfer** regions thesis A highlights; treating it as uniformly virtuous ignores **corposlop** attractors. Park supplies a **player-centric** lens; Buterin supplies **mechanism and product** vocabulary and a recognized failure mode. Together they support an integrated claim I think is underrated in public debate: normative and policy judgment should track **position on the spectrum**, not the **genus label** alone.
 
-At scale, that spectrum describes the **predictomic**: the **major financial landscape** where uncertainty markets, oracle discipline, and hedging workflows are **infrastructure**—the **future playbook** for serious coordination under incomplete information. **Massive AI agents** are likely to supply a large fraction of **marginal +EV** activity on that layer (micro-research, personalization, liquidity, calibration), extending thesis A into questions of **delegation, alignment, and systemic risk**. **L1-anchored settlement**, **L2 execution and liquidity**, **ZK** where privacy and verification demand it, and **honest interoperability** (including **L2↔L1** asset paths with clear latency and trust models) are the **plumbing** that lets that playbook run without collapsing **capital efficiency** or **user agency** into slogan-level **decentralization**. **Morpheum L1**, as sketched in §6.9, is one concrete **coordination** response to **L2 fragmentation**: concentrating **economic alignment** and **shared oracle discipline** so the predictomic does not dissolve into **incompatible silos**. **Section 9** separates **technical** from **business** proofs so due diligence and storytelling stay distinct. Naming the predictomic is a way to ensure that playbook is **understood** as central finance—not as a sideshow—while the spectrum remains the tool for telling **constructive** predictomic design from **degenerate** equilibria, and §6.10’s limits remind us what **even good plumbing** cannot solve.
+At scale, that spectrum describes the **predictomic**: a **major financial landscape** where uncertainty markets, oracle discipline, and hedging workflows function as **infrastructure**—a plausible **future playbook** for coordination under incomplete information. **Large-scale AI agents** may supply a large fraction of **marginal +EV** activity (micro-research, personalization, liquidity, calibration), extending thesis A into **delegation, alignment, and systemic risk**. **L1-anchored settlement**, **L2 execution and liquidity**, **ZK** where privacy and verification demand it, and **honest interoperability** (including **L2↔L1** paths with clear latency and trust models) are the **plumbing** that lets that playbook run without collapsing **capital efficiency** or **user agency** into slogan-level **decentralization**. **Morpheum L1**, as sketched in §6.9, is one concrete **coordination** response to **L2 fragmentation**: concentrating **economic alignment** and **shared oracle discipline** so the predictomic does not dissolve into **incompatible silos**. **Section 9** separates **technical** from **business** proofs so due diligence and storytelling stay distinct.
+
+Naming the predictomic is a way to keep that playbook **visible** as central finance—not as a sideshow—while the spectrum remains the tool for separating **constructive** design from **degenerate** equilibria. Open questions remain: how fast agent concentration actually arrives, which jurisdictions differentiate regulation along spectrum lines, and whether coordination hubs fragment again at the L1 layer. **§6.10’s limits** remind us what **even good plumbing** cannot solve.
 
 ---
 

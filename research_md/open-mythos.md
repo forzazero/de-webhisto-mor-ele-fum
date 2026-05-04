@@ -6,7 +6,7 @@
 
 ### Abstract
 
-OpenMythos is a concrete **Recurrent-Depth Transformer (RDT)**—the same class of model often called a Looped Transformer. Its fundamental story is a three-stage forward pass: a one-time **Prelude**, a **Recurrent Block** (shared weights, unrolled up to `max_loop_iters` times), and a one-time **Coda**. Abstractly, the hidden state obeys \(h_{t+1} = A h_t + B e + F(h_t, e; \theta)\): shared block \(F\), injection \(e\) **held constant across** loop **steps** in a single forward (typically derived from the Prelude, not refreshed each \(t\)), and LTI \((A,B)\), with \(\rho(A) < 1\) the usual **stability** design target; **MoE** and **ACT** add **width** and **adaptive** unroll. The rest of the note gives the architecture (with formulas in **§1.2–1.3**), a compact lever summary (**§2**), and framing (**§3**).
+**Recurrent-Depth Transformers (RDTs)**—often called **looped transformers**—reuse one parameterized block many times in a single forward pass instead of stacking distinct layers. OpenMythos is a public PyTorch sketch of that idea: a one-time **Prelude**, a **Recurrent Block** (shared weights, unrolled up to `max_loop_iters`), and a one-time **Coda**. In the linearized picture used for stability arguments, the hidden state obeys \(h_{t+1} = A h_t + B e + F(h_t, e; \theta)\): a shared nonlinear block \(F\), an injection \(e\) typically **held fixed across** loop **steps** within one forward (often produced by the Prelude), and an LTI pair \((A,B)\) with \(\rho(A) < 1\) as the usual **stability** target. **MoE** and **ACT** widen capacity per step and make unroll depth **adaptive**. Below: architecture and formulas (Sections **1.2–1.3**), a compact **benefit → lever** map (Section **2**), then limitations and literature (Section **3**). The repository is a **configurable experiment**, not a proof that any particular closed product matches it line for line.
 
 ---
 
@@ -14,7 +14,7 @@ OpenMythos is a concrete **Recurrent-Depth Transformer (RDT)**—the same class 
 
 ### 1.1 The three-stage shape
 
-RDT does not add depth by stacking *different* layers. It adds depth by **reusing one block** many times in a single forward pass. OpenMythos materializes that as:
+RDTs do not add depth only by stacking *different* layers; they add depth by **reusing one block** many times in a single forward. OpenMythos is one concrete layout:
 
 ```text
 tokens  →  Embedding  →  Prelude  →  [ Recurrent Block × N ]  →  Coda  →  norm + LM head  →  logits
@@ -54,7 +54,7 @@ flowchart LR
   p1 --> p2 --> p3
 ```
 
-The high-level map is: **bottleneck the recurrent core**, **stabilize the state update**, **attach breadth (MoE) and adaptive exit (ACT) to that core**.
+In my view, the design mantra is easy to state and hard to tune: **bottleneck the recurrent core**, **stabilize the linear part of the state update**, then **attach breadth (MoE) and adaptive exit (ACT)** to that core so compute tracks the problem rather than a fixed stack depth.
 
 **Composition of maps.** Let \(f_{\text{pre}}\) be embedding plus **Prelude**, producing an initial state \(h_0\) and a fixed **injection** \(e\). Let \(\Phi(\cdot; e, \theta)\) be *one* **recurrent** step (LTI plus the shared **\(F\)** block: attention, MoE, and conditioning in code) with the same \((e,\theta)\) on every step. Let \(f_{\text{coda}}\) be the **Coda** stack (before the LM head). For token (or position) data \(x\), an end-to-end pass is
 
@@ -109,7 +109,7 @@ where **\(N\)** is the unroll cap, **\(\lvert A\rvert\)** and **\(\lvert B\rvert
 - **\(A h_t + B e\)** ties the new state to the previous one and the original conditioning in a **linear dynamical system** form. The implementation constrains **\(A\)** so the linear part is **unconditionally stable** (\(\rho(A) < 1\), often via structured/negative-diagonal or similar parameterizations), which keeps **\(A^t\)** and the overall chain **well-behaved** in norm as the **\(N\)-fold** loop count grows, compared with an unconstrained residual.
 - **Shared \(\theta\)** means the same **\(F\)** is applied at every “virtual layer” of depth: **depth** is the number of **\(F\)-applications,** not a larger **\(\theta\).**
 
-The *fundamental* object is not a list of 96 **distinct** block maps; it is **one** **\(F\)** and an \((A, B, e)\)-**bounded** LTI that keeps the state trajectory in a **stable** regime.
+So the object is not “96 unique maps,” **\(F_1,\ldots,F_{96}\)**; it is **one** **\(F\)** plus an \((A, B, e)\)-**shaped** linear backbone meant to keep trajectories in a **stable** regime when the loop runs long. Whether that buys you better reasoning per FLOP is an empirical question.
 
 ### 1.3 Formalism for MoE, ACT, and depth-wise low-rank updates
 
@@ -167,9 +167,11 @@ Prelude and Coda use **dense** FFNs; only the recurrent segment uses the MoE pat
 
 ## 2. The way to design for this benefit
 
-The architecture is not a bag of tricks; it is a **set of levers** aimed at a small number of **design goals**. Below, **benefit → design move** (how you get that benefit in OpenMythos-style RDTs).
+Let’s recap Section 1 in one line: **shared recurrence** for depth, **LTI shaping** for stability, **MoE / MLA-GQA** for capacity and context cost, **ACT** and **loop conditioning** so depth can vary with the input.
 
-**Mathematical summary of the levers.** A fixed unroll of **\(N\)** steps on the same block **\(F\)** scales the **FLOP** of one **\(F\)-application** by **\(N\)** (per sequence, before ACT), while the trainable part of the recurrence in **\(\theta\)** stays **\(O(|P_F|)\)**, and the LTI \((A,B)\) and injection **\(e\)** add a comparatively **small** linear part. A **top-\(K\)** **MoE** with **\(E\)** experts routes the FFN so that each step only **activates** **\(K \ll E\)** experts. **ACT** with halting threshold **\(\tau\)** turns the unroll into a **stopping** time **\(T\)**: test-time **depth** is a **random** variable, and one tracks its **mean** **\(\mathbb{E}[T]\)** (or the full **law** of **\(T\)** per position) rather than a single fixed **\(N\).**
+The architecture reads less like a grab bag than a **small set of coupled levers** tied to explicit goals. Below: **benefit → design move** for OpenMythos-style RDTs.
+
+**Mathematical summary of the levers.** A fixed unroll of **\(N\)** steps applies the same block **\(F\)** **\(N\)** times (before ACT), so per-sequence **FLOPs** from **\(F\)** scale about **linearly in \(N\)**, while the **trainable** recurrence weights stay **\(O(|P_F|)\)**—the point of parameter sharing—with **\((A,B)\)** and **\(e\)** adding a comparatively **small** linear overhead. A **top-\(K\)** **MoE** over **\(E\)** experts activates only **\(K \ll E\)** experts per step. **ACT** with threshold **\(\tau\)** turns cap **\(N\)** into a **stopping time** **\(T\)**: at test time, depth is **input-dependent**, and you care about **\(\mathbb{E}[T]\)** (or the distribution of **\(T\)**), not a single global **\(N\)**.
 
 **Deeper “thinking” without a wider parameter count**
 
@@ -201,25 +203,27 @@ The architecture is not a bag of tricks; it is a **set of levers** aimed at a sm
 - *Benefit:* A single block should not be forced to be identical in behavior at \(t=1\) and \(t=16\).
 - *Design:* **Loop-index embeddings** and **per-step LoRA** add **iteration-conditioned** degrees of freedom without new full layers.
 
-This is the “design for benefit” view: **recurrence** addresses depth and parameters; **LTI** addresses stability; **ACT** addresses adaptive depth; **MoE** addresses capacity per step; **MLA/GQA** addresses context and **KV** cost; **loop index + LoRA** addresses **expressivity per iteration**.
+On balance, the “design for benefit” map is: **recurrence** for depth under a fixed parameter budget; **LTI** for stability; **ACT** for adaptive depth; **MoE** for capacity per step without dense FFN everywhere; **MLA/GQA** for context and **KV** cost; **loop index + LoRA** for **iteration-conditioned** behavior without unique full layers.
 
 ---
 
 ## 3. Framing, limitations, and expanded research
 
-**Framing, limitations, and expanded research on OpenMythos: recurrent-depth transformers as a path to compute-optimal reasoning**
+### Scope of this section
 
-**Author (this section):** Grok, synthesized from analysis of the OpenMythos repository, the Parcae paper, and related literature, then edited for consistency with this note. **Date:** April 23, 2026. **Repository:** [github.com/kyegomez/OpenMythos](https://github.com/kyegomez/OpenMythos) (MIT License, community implementation; on the order of 9k GitHub stars; not affiliated with Anthropic)
+**Recurrent-depth transformers** as a plausible axis for **compute-aware** language modeling—not a guarantee of “optimal reasoning.”
 
-This part extends the technical overview above by focusing on **theoretical framing**, **practical and theoretical limitations**, and **broader research context**, drawing on the repository README, code layout, and the papers the project cites—especially *Parcae: Scaling Laws for Stable Looped Language Models* ([arXiv:2604.12946](https://arxiv.org/abs/2604.12946), 2026).
+**Provenance:** This section was drafted from the OpenMythos repository, the Parcae paper, and adjacent literature, then aligned with the notation above. **Date:** April 23, 2026. **Repository:** [github.com/kyegomez/OpenMythos](https://github.com/kyegomez/OpenMythos) (MIT License; community implementation; significant public interest on GitHub; **not** affiliated with Anthropic). Star counts move; treat them as social signal, not technical validation.
+
+What follows is **framing**, **limitations**, and **context**—drawing on the README, code layout, and citations—especially *Parcae: Scaling Laws for Stable Looped Language Models* ([arXiv:2604.12946](https://arxiv.org/abs/2604.12946), 2026).
 
 ### 3.1 Theoretical framing of OpenMythos
 
-OpenMythos is framed explicitly as an **independent, community-driven theoretical reconstruction**—not a leaked or reverse-engineered copy of any proprietary “Claude Mythos” stack. A prominent repository disclaimer says:
+The project presents itself as an **independent, community-driven theoretical reconstruction**, not a leaked or reverse-engineered snapshot of any proprietary “Claude Mythos” stack. The README’s disclaimer is explicit:
 
 > OpenMythos is an independent, community-driven theoretical reconstruction based solely on publicly available research and speculation. It is not affiliated with, endorsed by, or connected to Anthropic or any of their proprietary systems.
 
-The working hypothesis in public discussion is that a **Recurrent-Depth Transformer (RDT)**, or **looped transformer**—a small set of layers **reused** with shared weights and executed many times in one forward—can deliver strong reasoning, agentic behavior, and test-time scaling without a hundred **distinct** layer stacks. In that picture, the rumored “Mythos”-class preview (early 2026, no official architecture paper) is interesting mainly as a **narrative anchor**, not a specification.
+The **working hypothesis** in public discussion—plausible but not settled—is that an **RDT** (**looped transformer**): a compact set of layers **reused** with shared weights and executed many times in one forward, can improve **reasoning-like** behavior and **test-time scaling** without linearly growing **distinct** layer stacks. Rumored “Mythos”-class systems (early 2026 chatter, no official architecture drop) are best treated as a **narrative anchor**: they motivate curiosity about RDTs, they do not specify OpenMythos.
 
 Three ideas lock together:
 
@@ -227,7 +231,7 @@ Three ideas lock together:
 - **Parameter efficiency via weight sharing.** Looped depth **reuses** parameters; a fixed footprint can approximate a much deeper *effective* compute path than a one-to-one layer stack, within stability and training constraints.
 - **Shape + stabilizers:** **Prelude → recurrent block → Coda**, with **LTI** injection, **ACT** early exit, **loop-index** conditioning, and **depth-wise LoRA**-style adaptation. The implementation claims no monopoly on truth; it **composes** ideas from, among others, Parcae (stable LTI and scaling), latent-depth / loop generalization work such as *Reasoning with Latent Thoughts* ([arXiv:2502.17416](https://arxiv.org/abs/2502.17416)) and *Loop, Think, & Generalize* ([arXiv:2604.07822](https://arxiv.org/abs/2604.07822)), and **Universal Transformers** (adaptive depth / ACT). The result is a **falsifiable** setup: a modular PyTorch line that can be **configured** (MLA vs GQA, `max_loop_iters`, etc.) and run as an **empirical** test of the RDT story.
 
-In that spirit, whether a closed product uses **exactly** this graph matters less than whether **open** experiments on looped, stabilized transformers advance the field; for many, interest in the **RDT** idea has already **decoupled** the architecture from any single product rumor.
+Whether any closed product uses **exactly** this graph is, in my view, secondary to whether **open** experiments on looped, stabilized transformers produce **replicated** scaling and capability curves. For many readers, the **RDT** idea has already **decoupled** from any one product rumor—and that is probably healthy for science.
 
 ### 3.2 Limitations of the OpenMythos architecture and implementation
 
@@ -248,7 +252,7 @@ RDTs and the OpenMythos sketch are **bounded**: some limits are **structural**, 
 - **Speculative fidelity to any closed product.** The repo is **not** a certification of an internal Anthropic design; treat performance claims on **RDTs** as **hypotheses** until reproduced at your scale and tasks.
 - **Extrapolating laws.** If scaling laws (e.g. from Parcae-class work) are measured to **1B-class** models, using them to **read off** 1T-scale behavior is **inference**, not a guarantee.
 
-**Net:** OpenMythos trades a **tall static stack** for **shared recurrence and test-time depth**, and inherits the usual **recurrent** issues: keep dynamics stable, avoid over-looping, and **measure** memorization, latency, and ACT on real workloads.
+**Net:** OpenMythos trades a **tall static stack** for **shared recurrence and test-time depth**, and inherits familiar recurrent headaches: **stability** under long unrolls, **saturation** of extra steps, **ACT** tuning, and **non-uniform** batch work. None of that removes the need to **measure** memorization, latency, and halting statistics on **your** data.
 
 ### 3.3 Expanded research context and opportunities
 
@@ -279,11 +283,13 @@ RDTs and the OpenMythos sketch are **bounded**: some limits are **structural**, 
 
 ### 3.4 Conclusion
 
-OpenMythos, read honestly, is a **speculative** but **structured** bet: that **recurrent depth**—not a taller stack of **unique** layers by itself—unlocks **efficient, test-time-tunable** reasoning, with **stability and scaling** made explicit in the Parcae line of work. Its **limits** (constraints on linear dynamics, saturation, ACT tuning, no magic pretrained weights) are the **agenda** for the next round of work, not footnotes. The [repository](https://github.com/kyegomez/OpenMythos), the paper trail it cites, and public channels (the project links a [Discord](https://discord.gg/EamjgSaEQf) in its docs) are ways to keep that work **collective and reproducible**.
+Read plainly, OpenMythos is a **speculative** but **well-structured** experiment: it bets that **recurrent depth**—more than a naive tower of **unique** layers—can offer **useful test-time compute scaling** under a **stabilized** recurrence story (the Parcae line makes that stability leg explicit). The **limits** listed above are not footnotes; they are the **next** empirical questions.
 
-**Next steps for readers who run experiments:** clone, pick a small realistic budget, measure **per-depth** and **per-token-ACT** curves, compare against a **Parcae-style** reference when applicable, and publish **configs and logs** so results compound.
+The [repository](https://github.com/kyegomez/OpenMythos), its citations, and community channels (e.g. [Discord](https://discord.gg/EamjgSaEQf) linked in project docs) are where falsifying or supporting that bet ought to happen—in **configs, logs, and independent reruns**.
 
-**One-line echo of the technical core (Sections 1–2 in this file):** The **fundamental** graph remains **\(\mathrm{Prelude} \to (\text{LTI} + \text{shared transformer} + \text{MoE} + \text{loop conditioning} + \text{ACT})^{N} \to \mathrm{Coda}\)**; the **design intent** is **shared** weights for **depth**, **stabilized** recurrence for long loops, **MoE** and **MLA/GQA** for **capacity and context**, and **ACT** plus **iteration** conditioning so **compute tracks the problem**, not a fixed **layer** count.
+**If you run experiments:** pick a **small** honest budget, trace **loss / quality vs. unroll** and **ACT halting**, compare to a **dense** or **Parcae-style** baseline where fair, and publish **artifacts** so others can extend rather than litigate from screenshots.
+
+**Technical spine (Sections 1–2):** **\(\mathrm{Prelude} \to (\text{LTI} + \text{shared transformer} + \text{MoE} + \text{loop conditioning} + \text{ACT})^{\le N} \to \mathrm{Coda}\)**—**shared** **\(\theta\)** for virtual depth, **contractive/shaped** linear dynamics for long loops, **MoE** and **MLA/GQA** trading **capacity** against **memory**, **ACT** and **loop cues** so **compute** can track the instance rather than a fixed layer count. The value of that recipe should not be overstated until it is **replicated** at your scale.
 
 ### Repository and install (unchanged for operators)
 

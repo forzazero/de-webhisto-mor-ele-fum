@@ -7,28 +7,28 @@ PmOracle: A Domain-Specialized, Timeless Oracle for Decentralized Prediction Mar
 
 ### Abstract
 
-Prediction markets have exploded in 2025–2026, with combined platforms like Polymarket and Kalshi processing tens of billions in monthly notional volume and industry run-rates projected toward $300B+ annualized in 2026. Yet the **oracle problem** remains central: reliably, manipulation-resistantly, and scalably resolving real-world event outcomes on-chain.
+Prediction markets have grown rapidly in 2025–2026: combined platforms such as Polymarket and Kalshi reportedly process very large monthly notionals, with industry commentary pointing toward **$300B+** annualized run-rates for 2026 (figures vary by source and definition). Even with that growth, the **oracle problem** stays central — how to resolve real-world outcomes **on-chain** in ways that are reliable, hard to game, and operationally tractable.
 
-PmOracle introduces a minimal, opinionated yet infinitely extensible resolution framework built around **exactly five fundamental truth paradigms** instead of transient topic-based categories. These paradigms—**AuthorityCertified**, **MarketPrice**, **TimestampedAnnouncement**, **ParametricMeasurement**, and **SubjectiveConsensus**—encode the only ways humanity verifies future events. This design delivers domain-specific bias guards and manipulation resistance for the ~95% high-volume cases while providing a clean escape hatch for all future novelty.
+PmOracle proposes a minimal, opinionated resolution framework built around **five recurring truth paradigms** rather than a shifting topic taxonomy. The paradigms — **AuthorityCertified**, **MarketPrice**, **TimestampedAnnouncement**, **ParametricMeasurement**, and **SubjectiveConsensus** — are meant to mirror distinct ways markets usually ground truth in practice (institutions, prices, timed announcements, measurements, and messy social judgment). In the authors’ intended design, that split supplies domain-specific **bias guards** for high-volume shapes of markets while keeping **SubjectiveConsensus** as an explicit home for long-tail and ambiguous questions.
 
-Built as a thin layer atop battle-tested caching, BLS aggregation, and stake-weighted submission pipelines, PmOracle achieves strong economic security, simplicity, and future-proofing without core engine modifications.
+The architecture sketches reuse familiar ingredients — caching, BLS aggregation, stake-weighted submissions — to aim for economic security and simplicity **without** repeatedly rewriting a monolithic resolver for each new headline category.
 
 ### 1. Introduction – The Prediction Market Oracle Challenge in 2026
 
-Prediction markets aggregate collective beliefs into probabilities via financial incentives. Their accuracy often surpasses polls, experts, and traditional forecasting (as seen in 2024–2025 election cycles and 2026 sports/crypto surges).
+Prediction markets aggregate beliefs into prices under incentive pressure; in many historical episodes they have tracked realized outcomes surprisingly well — though **when** and **why** they outperform simpler forecasts remains contested and context-dependent (election cycles, sports, macro shocks, and crypto narratives each behave differently).
 
 Key platforms in early 2026:
 
 - **Kalshi** (regulated, fiat): Sports dominates (~85–90% volume), with crypto, politics, and weather secondary.
 - **Polymarket** (crypto-native): More balanced — Sports ~35–40%, Politics ~30–35%, Crypto ~15–30%, with geopolitics and culture growing.
 
-Industry trends (2026–2027):
+Plausible industry trends for 2026–2027 (all contingent on regulation, product mix, and macro):
 
-- Sports explosive (Olympics, leagues, UFC)
-- Crypto/economic accelerating (Fed, ETFs, RWAs)
-- Job-market macro accelerating (unemployment, payrolls, AI-displacement debates; Fed/Wall St. watches)
-- AI/tech/attention emerging (model releases, agent adoption)
-- Total volume on pace for 5× 2025 levels (~$300B+ run-rate)
+- Sports-heavy calendars (Olympics, leagues, UFC) continuing to anchor retail attention on some venues
+- Crypto and macro-linked markets growing as rates, ETFs, and **RWA** narratives evolve
+- Labor and macro prints attracting trading interest alongside mainstream coverage
+- AI and “attention economy” questions spreading into long-tail markets
+- Aggregate volume scenarios that extrapolate **~5×** 2025 — informative as orientation, not prophecy
 
 Resolution remains the bottleneck:
 
@@ -36,20 +36,20 @@ Resolution remains the bottleneck:
 - Generic oracles create huge attack surfaces or poor defaults.
 - Topic categories age poorly (Crypto was "Novel" in 2025; may need split by 2027).
 
-PmOracle solves this via **truth-paradigm specialization** — hardcoding eternal resolution mechanics while allowing market creators to select the appropriate one at creation.
+PmOracle’s bet is **truth-paradigm specialization**: bake resolution **logic families** into the core — each tuned to a different manipulation geometry — and ask creators to pick a paradigm at market creation instead of inventing a fresh resolver shape for every trending topic.
 
 ### 2. Core Philosophy – Truth Is Domain-Specific; Paradigms Are Eternal
 
-**Axiom**: Different event classes have fundamentally different:
+**Working premise** (not a theorem): different **event classes** tend to differ along a few axes that matter for resolution:
 
-- Trusted data sources
-- Finality timing & certainty
-- Manipulation incentives & favorite-longshot biases
-- Ambiguity resolution defaults
+- Which sources markets treat as authoritative
+- How **finality** arrives in time — and how noisy fast signals are
+- Where manipulation incentives concentrate — including favorite–longshot distortions
+- What **defaults** should apply when wording or data are ambiguous
 
-A single generic resolver invites exploits. Topic categories require periodic redesign.
+A **single** generic resolver can work for toy examples; at scale it often forces awkward compromises or dispute-heavy paths. Pure **topic** taxonomies, meanwhile, age poorly — yesterday’s “Novel” bucket becomes tomorrow’s mainstream category.
 
-Solution: Hardcode **five ontological paradigms** covering 100% of possible markets forever.
+**Design response**: fix **five paradigm-level strategies** — stable resolution **shapes** — and map questions into them, rather than perpetually extending a topic list.
 
 
 | Paradigm                | Truth Mechanism                           | Core Problem Solved                              | Key Guard / Bias Protection                       | 2026 Examples                                                | Future-Proof Examples (2030+)                                                             |
@@ -61,7 +61,7 @@ Solution: Hardcode **five ontological paradigms** covering 100% of possible mark
 | SubjectiveConsensus     | Meme / cultural / long-tail consensus     | “Nothing ever happens” + edge cases              | Strong default-to-“No” + high stake threshold     | Celebrity drama, Jesus return bets, memecoin virality        | Brain-computer interface adoption, alien contact claims, subjective AI safety thresholds  |
 
 
-These five are **complete & orthogonal** — every conceivable market maps to exactly one.
+In this framework the five paradigms are intended to be **mutually exclusive choices at creation** and **jointly exhaustive** of the authors’ intended taxonomy: every market **should** pick exactly one primary paradigm. Real markets sometimes sit on boundaries; §7 discusses overlap and misfits explicitly — the claim is **engineering convenience and safety**, not logical necessity about “all possible questions forever.”
 
 #### 2.1 Paradigm Details (from p1–p5)
 
@@ -99,7 +99,11 @@ These five are **complete & orthogonal** — every conceivable market maps to ex
 
 **SubjectiveConsensus** — Long-tail, ambiguous, meme-driven, cultural, or interpretive events where truth depends on broad human judgment or social consensus. Serves as the **eternal escape hatch** for everything outside the other four. *Guards*: Strong default bias to "No" (counters pro-Yes bias); high stake-weight threshold for Yes; stake-weighted aggregation with slashing; ambiguity fallback to No; no single-source reliance. *Event types*: Memecoin virality ("Will X reach $1B mcap?"); extreme long-shot prophecies ("Jesus returns", "Aliens confirmed"); celebrity drama/gossip; vague geopolitical thresholds ("civil war" definition); futarchy/DAO decisions (interpretive execution); attention/hype without clear metrics ("Will AI model X be called smartest?"). Usually <10% of notional volume but absolute $ grows. *When not to use*: Any event with a clear authority, price, announcement, or measurement source → use the matching paradigm.
 
-**Why exactly five?** Fewer paradigms collapse everything into SubjectiveConsensus (weak bias guards, poor UX, easy manipulation). More paradigms would fragment the taxonomy without adding coverage — these five correspond to the only ways humanity verifies future events: authority, markets, announcements, measurement, and consensus. New topics (AI milestones 2027, Mars colonization 2035, brain-computer interfaces 2040) automatically map to one paradigm; no addition to the paradigm set is ever needed. This is the same philosophy that made Polymarket and Kalshi successful: specialize where truth mechanisms differ, generalize everywhere else.
+**Why exactly five?** Fewer buckets tend to dump difficult cases into **SubjectiveConsensus**, weakening guards where measurable structure exists. More buckets multiply maintenance and cross-paradigm disputes unless each extra bucket clears a high bar for **distinct manipulation physics**.
+
+The authors argue these five mirror recurring resolution **modes** — institutional certification, priced observables, timed public statements, numeric physical readings, and coarse social judgment — not that history will never surface a sixth mode worth a hard fork (§7 leaves room for that). New headlines still map to old epistemologies: an “AI milestone” might be an **announcement**, a **benchmark**, or a fuzzy cultural judgment depending on how the question is written.
+
+The broader lesson — specialize where **how truth is established** differs — is independent of whether five is the uniquely optimal count.
 
 For full paradigm specifications, real-world example tables, and when-to-use guidance, see `p1.md` (AuthorityCertified), `p2.md` (MarketPrice), `p3.md` (TimestampedAnnouncement), `p4.md` (ParametricMeasurement), and `p5.md` (SubjectiveConsensus).
 
@@ -148,7 +152,7 @@ PmOracle reuses existing infrastructure for economic security. All paradigms sha
 
 **Core design:** The system recognizes exactly five resolution paradigms. Market creation specifies paradigm plus minimal parameters (e.g., source URLs, confidence bands, threshold values).
 
-Each paradigm encodes real-world learned guards—for example, Yogi Berra–style timing guards for sports-like markets, and a strong “No” bias for subjective consensus.
+Each paradigm encodes guards motivated by historical failure modes — for example, late-window manipulation patterns in sports-like markets (timing-aware filters), and conservative **No** defaults where outcomes depend on diffuse social interpretation.
 
 Resolution flow:
 
@@ -178,20 +182,20 @@ The creator submits a market-creation request with paradigm, market identifier, 
 
 #### 3.4 Migration from Topic-Based Design
 
-The paradigm swap is a **one-time migration** with no ongoing maintenance. Legacy topic categories map cleanly: Election and Production → AuthorityCertified; Sports and Entertainment → TimestampedAnnouncement; Weather and Production → ParametricMeasurement; Novel → SubjectiveConsensus. MarketPrice is added as a first-class paradigm for price-based resolution. Existing markets using legacy categories can be mapped at read time; new markets always use paradigm selection.
+The paradigm swap is framed as a **one-time migration** off topic enums — ongoing work shifts toward **parameter** tuning rather than adding categories ad hoc. Legacy topic categories map cleanly: Election and Production → AuthorityCertified; Sports and Entertainment → TimestampedAnnouncement; Weather and Production → ParametricMeasurement; Novel → SubjectiveConsensus. MarketPrice is added as a first-class paradigm for price-based resolution. Existing markets using legacy categories can be mapped at read time; new markets always use paradigm selection.
 
 ### 4. Security & Economic Design
 
-- **Bias guards** per paradigm reduce favorite-longshot, late-manipulation, ambiguity exploits. Each paradigm encodes real 2025–2026 market wisdom: Paradigm-specific guards (see §2.1): AuthorityCertified—official source priority; MarketPrice—median last-N + flash-crash guard; TimestampedAnnouncement—earliest valid timestamp; ParametricMeasurement—median + bands; SubjectiveConsensus—strong default-to-No, “No” bias for ambiguous SubjectiveConsensus, official-source priority for AuthorityCertified, median + bands for ParametricMeasurement.
+- **Bias guards** per paradigm target recurring manipulation shapes (favorite–longshot skew, late-window bids, ambiguity farming). Details live in §2.1; at a high level: **AuthorityCertified** prioritizes certified institutional sources; **MarketPrice** uses robust aggregates plus flash-move filters; **TimestampedAnnouncement** privileges well-ranked sources and earliest valid timestamps; **ParametricMeasurement** uses medians and explicit tolerance bands; **SubjectiveConsensus** leans conservative (**No**) when interpretation is unclear.
 - **Stake-weighting** + slashing disincentivize attacks.
 - **Default-to-No** in ambiguous SubjectiveConsensus cases protects against “nothing ever happens” pump-and-dump.
-- **Extensibility** without governance: Novel = SubjectiveConsensus forever.
+- **Extensibility** with minimal taxonomy churn: novel question shapes default into **SubjectiveConsensus** rather than forcing a new topic enum per hype cycle.
 
-Compared to 2026 peers:
+Compared to rough 2026 archetypes (each simplified):
 
-- Kalshi: Centralized, source-per-category (sports official leagues, weather NOAA).
-- Polymarket / UMA: Optimistic oracle (propose-dispute-DVM), flexible but dispute-heavy for ambiguous cases.
-- PmOracle: Hybrid — pre-specialized paradigms reduce disputes while retaining decentralization.
+- **Kalshi**: centralized rulebooks and curated sources per vertical — strong operational clarity, different trust model than fully on-chain stacks.
+- **Polymarket / UMA-style paths**: optimistic dispute games — flexible, but ambiguity can route disproportionate volume into challenges.
+- **PmOracle (as proposed)**: paradigm-specialized defaults up front — plausibly fewer disputes on “bread and butter” shapes of markets; tradeoffs include rigidity at paradigm boundaries and governance over guard parameters.
 
 #### 4.2 Security Model (Per-Paradigm)
 
@@ -224,16 +228,16 @@ Compared to 2026 peers:
 
 | Dimension               | Topic-Based (e.g. original 6 categories) | Paradigm-Based (PmOracle v1)      |
 | ----------------------- | ---------------------------------------- | --------------------------------- |
-| Long-term stability     | Requires 1–2 year reviews/adds           | Fixed forever                     |
-| Coverage                | ~95% today, leaks to Novel               | 100% systematic                   |
-| Manipulation resistance | Good but topic-tied                      | Eternal + domain-optimized        |
+| Long-term stability     | Requires periodic taxonomy reviews       | Paradigm set fixed by design intent |
+| Coverage                | ~95% today, leaks to Novel               | Aims for systematic coverage via paradigms |
+| Manipulation resistance | Good but topic-tied                      | Domain-tuned guards per paradigm        |
 | Futarchy / Impact Mkts  | Forced into Novel                        | Native (MarketPrice + Subjective) |
 | Maintenance burden      | Periodic taxonomy updates               | One-time swap, five paradigms     |
 
 
-**Historical context — the original six topic categories.** PmOracle’s predecessor design used six topic-based categories: Election, Sports, Entertainment, Weather, Production, and Novel. These were chosen as the minimal set covering ~95% of real-world prediction-market volume (based on 2025–2026 data from Polymarket, Kalshi, PredictIt) while remaining maintainable. Fewer categories collapsed everything into Novel (weak bias guards, poor UX, easy manipulation); more categories exploded registry and strategy maintenance. Six was the Goldilocks number — enough specialization for safety and accuracy, few enough that adding a seventh was trivial. The paradigm-based design preserves this philosophy while making the taxonomy timeless.
+**Historical context — the original six topic categories.** PmOracle’s predecessor design used six topic-based categories: Election, Sports, Entertainment, Weather, Production, and Novel. They were chosen to cover a large share of observed prediction-market volume (the paper cites ~95% from 2025–2026 platform mixes — an estimate, not a physical constant) while staying maintainable. Fewer categories tended to overload **Novel**; more categories inflated registry work. Six was a pragmatic compromise. The paradigm-based step tries to keep that pragmatism while anchoring categories to **how** truth is verified rather than **what** is trendy.
 
-**Philosophy in one sentence.** *“Make the 95% common cases magically correct and safe, while keeping the long tail infinitely extensible — without ever touching the core oracle engine.”* The design is intentionally opinionated on common cases (where money and manipulation risk live) and unopinionated on the rest (Novel → SubjectiveConsensus) so creativity is never constrained.
+**Philosophy in one sentence.** *Bias guards and resolution defaults toward “obvious” high-volume shapes of markets, route genuine ambiguity into an explicit conservative lane, and avoid perpetual core rewrites for new topics.* The intent is opinionated where mistakes are expensive and comparatively hands-off on creative long tails — at the cost of careful upfront question-writing and occasional paradigm-sort judgment calls.
 
 #### 5.2 Performance & Cost Analysis
 
@@ -291,7 +295,7 @@ Job market prediction markets are one of the fastest-growing and most economical
 | **SubjectiveConsensus**     | <5% now, fastest-growing tail      | Interpretive, AI-impact, cultural questions         | Strong default-to-"No" + high stake threshold                                     | "Will AI displace more jobs than it creates by 2030?"; "Will 4-day workweek become standard in tech by 2028?"; "Will remote work stay >30%?" |
 
 
-**Why job market fits PmOracle:** Most volume is **AuthorityCertified** (BLS data) — first official release wins; later revisions ignored. This eliminates disputes that plague optimistic oracles. The fastest-growing edge (AI impact, remote work, cultural shifts) needs **SubjectiveConsensus** guards: default-to-No fades over-optimistic Yes bets on tail events (e.g., "AI wipes out 50% entry-level jobs" hype). No need to add "Jobs" or "AI-Labor" as new categories — every job-market question slots into one of the five paradigms forever.
+**Why job market fits PmOracle:** Much macro–labor volume naturally sits under **AuthorityCertified** (e.g., BLS-style releases) — official prints as primary truth, with careful rules around revisions and ambiguity. That pattern can **reduce** classes of dispute common in looser oracle designs; it does not remove politics around definitions or release timing. Interpretive tail questions (AI displacement narratives, cultural shifts about work) fit **SubjectiveConsensus** with conservative defaults. Rather than minting “Jobs” as an eternal topic pillar, the mapping argues those questions still fall under one of the five paradigms — though wording quality matters enormously.
 
 **Economic benefits:** Companies can issue prediction-market bonds tied to hiring numbers; workers can hedge job-loss risk. DeFi loans can auto-liquidate on unemployment oracles. Futarchy/policy markets ("Should minimum wage rise?") resolve via AuthorityCertified + SubjectiveConsensus. For full job-market paradigm mapping and the "paradigm sort" application flow, see `job-market.md`.
 
@@ -416,7 +420,7 @@ The agent skills marketplace is the fastest-growing extension of the job-market 
 
 For full schema, module flow, hire-flow diagram, and edge cases, see `agent-capability-model.md`, `agent-hire-flow.md`, `agent-skill-resolution.md`.
 
-Sports continues explosive growth (Olympics, leagues, UFC); Politics peaks in even years (midterms 2026); Crypto/Economic is the fastest relative gainer (Fed, ETFs, RWAs); AI/Tech/Attention is emerging (model releases, agent adoption). Climate/Weather/Parametric grows steadily with tokenized insurance. Novel remains the long tail — volume in dollars grows as total market size explodes, so the bias-to-No default stays important. No urgent redesign is needed; the paradigm-based design ages gracefully as topic mix shifts.
+Sports-heavy calendars, election cycles, crypto–macro narratives, and emerging AI–attention markets each pull topic mix in different directions; parametric weather and insurance-linked markets may grow on their own slope. Long-tail **Novel** questions can rise in dollar terms even as share falls — which keeps a conservative **SubjectiveConsensus** default economically relevant. The paradigm framing is meant to absorb those shifts via guard tuning more often than via taxonomy reinvention; whether that holds in practice is an empirical question.
 
 **Source attribution.** Volume and share figures come from analytics trackers (Artemis, Dune, Defirate/Allium, Messari), platform announcements, and media coverage (Gambling Insider, FalconX, Financial Times) as of early March 2026. Key supporting stats: Kalshi sports 76–90% of volume (Gambling Insider, FT); Polymarket Feb 2026 Sports ~34.5%, Politics ~32.6%, Crypto ~29.6% (Defirate); industry YTD 2026 on track for >$325B (FalconX, 5× 2025); combined Kalshi + Polymarket Feb ~$17.9–23.4B. Cross-verified via Artemis, Dune on-chain, Allium feeds.
 
@@ -438,28 +442,22 @@ Sports continues explosive growth (Olympics, leagues, UFC); Politics peaks in ev
 
 ### 8. Roadmap & Evolution
 
-- 2026: Launch with 5 paradigms covering current volume leaders.
-- 2027 monitoring: If Crypto or AI-Tech consistently >10–15%, tune MarketPrice / TimestampedAnnouncement guards—no taxonomy change.
-- Future: AI-assisted submission agents (enhance accuracy without altering paradigms).
-- Integration: Prediction platforms, futarchy DAOs, RWA/parametric insurance.
+- 2026: Target launch posture with five paradigms aligned to present volume mixes (subject to shipping constraints).
+- 2027 monitoring: If Crypto or AI-tech verticals stabilize above rough **10–15%** share thresholds, adjust **MarketPrice** / **TimestampedAnnouncement** guards — parameter tuning rather than taxonomy churn.
+- Longer term: AI-assisted submission helpers may improve observation quality without necessarily expanding the paradigm count.
+- Integration targets: prediction venues, futarchy-style DAOs, **RWA** / parametric insurance hooks.
 
-**Implementation & integration.** For platform-builder guidance and integrator workflows, see the supporting documentation.
+**Implementation & integration.** Platform-builder detail lives in supporting docs — treat this section as orientation, not a commitment timeline.
 
 ### 9. Conclusion
 
-PmOracle embodies a simple yet powerful truth: **Specialize deeply where truth mechanisms differ, generalize elegantly everywhere else.**
+If there is a single idea worth carrying away, I think it is this: **specialize where the mechanism of truth differs; reuse simple machinery everywhere else.**
 
-By hardcoding five eternal paradigms instead of shifting topics, PmOracle delivers:
+Fixing five paradigm-level strategies instead of chasing topic churn is a bet — not a guarantee — that most liquid markets reuse a small number of resolution **shapes**, and that the rest can live inside an explicit, conservative long-tail paradigm with heavy **No** bias and high stakes where appropriate.
 
-- Production-grade safety for high-volume domains
-- Zero-maintenance future-proofing
-- Radical simplicity for developers and users
+Prediction markets might remain niche; they might become serious risk-transfer infrastructure. Either way, **oracle design** shapes who gets paid, who gets rugged by ambiguity, and how much dispute friction markets tolerate. PmOracle is one proposal in that design space: comparatively minimal plumbing, paradigm-specific guards, and honesty about edge cases (overlap, governance tuning, possible future paradigms).
 
-As prediction markets evolve into mainstream information & risk-transfer infrastructure — potentially rivaling derivatives or even equities — robust, manipulation-resistant oracles become foundational public goods.
-
-PmOracle is that foundation: minimal, correct, and built to last centuries.
-
-The future of truth on-chain starts with knowing what truth really means. 🚀
+The open work is empirical — backtests, live dispute rates, and calibration — more than slogans.
 
 ---
 
